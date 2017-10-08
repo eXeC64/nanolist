@@ -71,7 +71,7 @@ func main() {
 
 	if flag.Arg(0) == "check" {
 		if checkConfig() {
-			fmt.Printf("Congratulations, mailmule appears to be successfully set up!")
+			fmt.Printf("Congratulations, nanolist appears to be successfully set up!")
 			os.Exit(0)
 		} else {
 			os.Exit(1)
@@ -516,7 +516,7 @@ func loadConfig() {
 	if len(gConfig.ConfigFile) > 0 {
 		cfg, err = ini.Load(gConfig.ConfigFile)
 	} else {
-		cfg, err = ini.LooseLoad("mailmule.ini", "/usr/local/etc/mailmule.ini", "/etc/mailmule.ini")
+		cfg, err = ini.LooseLoad("nanolist.ini", "/usr/local/etc/nanolist.ini", "/etc/nanolist.ini")
 	}
 
 	if err != nil {
