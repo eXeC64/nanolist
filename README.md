@@ -5,6 +5,44 @@ nanolist is a lightweight mailing list manager written in Go. It's easy to
 deploy, and easy to manage. It was written as an antithesis of the experience
 of setting up other mailing list software.
 
+Usage
+-----
+
+nanolist is controlled by emailing nanolist with a command in the subject.
+
+The following commands are available:
+
+* `help` - Reply with a list of valid commands
+* `lists` - Reply with a list of available mailing lists
+* `subscribe list-id` - Subscribe to receive mail sent to the given list
+* `unsubscribe list-id` - Unsubscribe from receiving mail sent to the given list
+
+Frequently Asked Questions
+--------------------------
+
+### Is there a web interface?
+
+No. If you'd like an online browsable archive of emails, I recommend looking
+into tools such as hypermail, which generate HTML archives from a list of
+emails.
+
+If you'd like to advertise the lists on your website, it's recommended to do
+that manually, in whatever way looks best. Subscribe buttons can be achieved
+with a `mailto:` link.
+
+### How do I integrate this with my preferred mail transfer agent?
+
+I'm only familiar with postfix, for which there are instructions below. The
+gist of it is: have your mail server pipe emails for any mailing list addresses
+to `nanolist message`. nanolist will handle any messages sent to it this way,
+and reply using the configured SMTP server.
+
+### Why would anyone want this?
+
+Some people prefer mailing lists for patch submission and review, some people
+want to play mailing-list based games such as nomic, and some people are just
+nostalgic.
+
 Installation
 ------------
 
@@ -92,21 +130,6 @@ robertpaulson99@example.com nanolist
 and restart postfix.
 
 Congratulations, you've now set up 3 mailing lists of your own!
-
-Commands
---------
-
-Commands are sent to nanolist by emailing the command address (`command_address`
-in the configuration file), with the command in the subject. The body of
-messages sent to the command address is ignored.
-
-The following commands are available:
-
-* `help` - Reply with a list of valid commands
-* `lists` - Reply with a list of available mailing lists
-* `subscribe list-id` - Subscribe to receive mail sent to the given list
-* `unsubscribe list-id` - Unsubscribe from receiving mail sent to the given list
-
 
 License
 -------
