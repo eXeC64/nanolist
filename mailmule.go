@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"database/sql"
+	"flag"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 	"gopkg.in/ini.v1"
@@ -25,6 +26,7 @@ type Config struct {
 	SMTPUsername   string `ini:"smtp_username"`
 	SMTPPassword   string `ini:"smtp_password"`
 	Lists          map[string]*List
+	Debug          bool
 }
 
 type List struct {
@@ -53,14 +55,19 @@ var gConfig *Config
 // Entry point
 func main() {
 	loadConfig()
+
+	flag.BoolVar(&gConfig.Debug, "debug", false, "Don't send emails - print them to stdout instead")
+
+	flag.Parse()
+
 	openLog()
 
-	if len(os.Args) < 2 {
+	if len(flag.Args()) < 1 {
 		fmt.Printf("Error: Command not specified\n")
 		return
 	}
 
-	if os.Args[1] == "message" {
+	if flag.Arg(0) == "message" {
 		msg := &Message{}
 		err := msg.FromReader(bufio.NewReader(os.Stdin))
 		if err != nil {
@@ -71,7 +78,7 @@ func main() {
 			msg.Id, msg.From, msg.To, msg.Cc, msg.Subject)
 		handleMessage(msg)
 	} else {
-		fmt.Printf("Unknown command %s\n", os.Args[1])
+		fmt.Printf("Unknown command %s\n", flag.Arg(0))
 	}
 }
 
@@ -295,6 +302,17 @@ func (msg *Message) String() string {
 }
 
 func (msg *Message) Send(recipients []string) {
+	if gConfig.Debug {
+		fmt.Printf("------------------------------------------------------------\n")
+		fmt.Printf("SENDING MESSAGE TO:\n")
+		for _, r := range recipients {
+			fmt.Printf(" - %s\n", r)
+		}
+		fmt.Printf("MESSAGE:\n")
+		fmt.Printf("%s\n", msg.String())
+		return
+	}
+
 	auth := smtp.PlainAuth("", gConfig.SMTPUsername, gConfig.SMTPPassword, gConfig.SMTPHostname)
 	err := smtp.SendMail(gConfig.SMTPHostname+":"+gConfig.SMTPPort, auth, msg.From, recipients, []byte(msg.String()))
 	if err != nil {
