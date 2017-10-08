@@ -27,6 +27,7 @@ type Config struct {
 	SMTPPassword   string `ini:"smtp_password"`
 	Lists          map[string]*List
 	Debug          bool
+	ConfigFile     string
 }
 
 type List struct {
@@ -54,11 +55,13 @@ var gConfig *Config
 
 // Entry point
 func main() {
-	loadConfig()
+	gConfig = &Config{}
 
 	flag.BoolVar(&gConfig.Debug, "debug", false, "Don't send emails - print them to stdout instead")
-
+	flag.StringVar(&gConfig.ConfigFile, "config", "", "Load configuration from specified file")
 	flag.Parse()
+
+	loadConfig()
 
 	if len(flag.Args()) < 1 {
 		fmt.Printf("Error: Command not specified\n")
@@ -498,9 +501,17 @@ func requireLog() {
 
 // Load gConfig from the on-disk config file
 func loadConfig() {
-	gConfig = &Config{}
+	var (
+		err error
+		cfg *ini.File
+	)
 
-	cfg, err := ini.LooseLoad("mailmule.ini", "/usr/local/etc/mailmule.ini", "/etc/mailmule.ini")
+	if len(gConfig.ConfigFile) > 0 {
+		cfg, err = ini.Load(gConfig.ConfigFile)
+	} else {
+		cfg, err = ini.LooseLoad("mailmule.ini", "/usr/local/etc/mailmule.ini", "/etc/mailmule.ini")
+	}
+
 	if err != nil {
 		log.Printf("CONFIG_ERROR Error=%q\n", err.Error())
 		os.Exit(0)
