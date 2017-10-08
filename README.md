@@ -51,6 +51,8 @@ posters = admin@example.com, moderator@example.com
 address = robertpaulson99@example.com
 # Don't tell users this list exists
 hidden = true
+# Only let subscribed users post to this list
+subscribers_only = true
 ```
 
 Lastly, you need to hook the desired incoming addresses to mailmule:

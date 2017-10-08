@@ -31,13 +31,14 @@ type Config struct {
 }
 
 type List struct {
-	Name        string `ini:"name"`
-	Description string `ini:"description"`
-	Id          string
-	Address     string   `ini:"address"`
-	Hidden      bool     `ini:"hidden"`
-	Posters     []string `ini:"posters,omitempty"`
-	Bcc         []string `ini:"bcc,omitempty"`
+	Name            string `ini:"name"`
+	Description     string `ini:"description"`
+	Id              string
+	Address         string   `ini:"address"`
+	Hidden          bool     `ini:"hidden"`
+	SubscribersOnly bool     `ini:"subscribers_only"`
+	Posters         []string `ini:"posters,omitempty"`
+	Bcc             []string `ini:"bcc,omitempty"`
 }
 
 type Message struct {
@@ -337,17 +338,23 @@ func (msg *Message) Send(recipients []string) {
 
 // Check if the user is authorised to post to this mailing list
 func (list *List) CanPost(from string) bool {
-	if len(list.Posters) == 0 {
-		return true
+
+	// Is this list restricted to subscribers only?
+	if list.SubscribersOnly && !isSubscribed(from, list.Id) {
+		return false
 	}
 
-	for _, poster := range list.Posters {
-		if from == poster {
-			return true
+	// Is there a whitelist of approved posters?
+	if len(list.Posters) > 0 {
+		for _, poster := range list.Posters {
+			if from == poster {
+				return true
+			}
 		}
+		return false
 	}
 
-	return false
+	return true
 }
 
 // Send a message to the mailing list
