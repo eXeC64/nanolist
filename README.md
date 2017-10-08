@@ -14,6 +14,9 @@ First, you'll need to build and install the nanolist binary:
 Second, you'll need to write a config to either `/etc/nanolist.ini`
 or `/usr/local/etc/nanolist.ini` as follows:
 
+You can also specify a custom config file location by invoking nanolist
+with the `-config` flag: `-config=/path/to/config.ini`
+
 ```ini
 log = /path/to/logfile
 database = /path/to/sqlite/database
