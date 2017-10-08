@@ -60,12 +60,21 @@ func main() {
 
 	flag.Parse()
 
-	openLog()
-
 	if len(flag.Args()) < 1 {
 		fmt.Printf("Error: Command not specified\n")
-		return
+		os.Exit(1)
 	}
+
+	if flag.Arg(0) == "check" {
+		if checkConfig() {
+			fmt.Printf("Congratulations, mailmule appears to be successfully set up!")
+			os.Exit(0)
+		} else {
+			os.Exit(1)
+		}
+	}
+
+	requireLog()
 
 	if flag.Arg(0) == "message" {
 		msg := &Message{}
@@ -350,13 +359,12 @@ func (list *List) Send(msg *Message) {
 
 // DATABASE LOGIC /////////////////////////////////////////////////////////////
 
-// Load a handle to the subscriber database
-func requireDB() *sql.DB {
+// Open the database
+func openDB() (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", gConfig.Database)
 
 	if err != nil {
-		log.Printf("DATABASE_ERROR Error=%q\n", err.Error())
-		os.Exit(0)
+		return nil, err
 	}
 
 	_, err = db.Exec(`
@@ -366,11 +374,16 @@ func requireDB() *sql.DB {
 	);
 	`)
 
+	return db, err
+}
+
+// Open the database or fail immediately
+func requireDB() *sql.DB {
+	db, err := openDB()
 	if err != nil {
 		log.Printf("DATABASE_ERROR Error=%q\n", err.Error())
-		os.Exit(0)
+		os.Exit(1)
 	}
-
 	return db
 }
 
@@ -464,14 +477,23 @@ func clearSubscriptions(list string) {
 // HELPER FUNCTIONS ///////////////////////////////////////////////////////////
 
 // Open the log file for logging
-func openLog() {
+func openLog() error {
 	logFile, err := os.OpenFile(gConfig.Log, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
 	if err != nil {
-		log.Printf("DATABASE_ERROR Error=%q\n", err.Error())
-		os.Exit(0)
+		return err
 	}
 	out := io.MultiWriter(logFile, os.Stderr)
 	log.SetOutput(out)
+	return nil
+}
+
+// Open the log, or fail immediately
+func requireLog() {
+	err := openLog()
+	if err != nil {
+		log.Printf("LOG_ERROR Error=%q\n", err.Error())
+		os.Exit(0)
+	}
 }
 
 // Load gConfig from the on-disk config file
@@ -580,4 +602,34 @@ func commandInfo() string {
 		"\r\n"+
 		"To send a command, email %s with the command as the subject.\r\n",
 		gConfig.CommandAddress)
+}
+
+// Check for a valid configuration
+func checkConfig() bool {
+	_, err := openDB()
+	if err != nil {
+		fmt.Printf("There's a problem with the database: %s\n", err.Error())
+		return false
+	}
+
+	err = openLog()
+	if err != nil {
+		fmt.Printf("There's a problem with the log: %s\n", err.Error())
+		return false
+	}
+
+	client, err := smtp.Dial(gConfig.SMTPHostname + ":" + gConfig.SMTPPort)
+	if err != nil {
+		fmt.Printf("There's a problem connecting to your SMTP server: %s\n", err.Error())
+		return false
+	}
+
+	auth := smtp.PlainAuth("", gConfig.SMTPUsername, gConfig.SMTPPassword, gConfig.SMTPHostname)
+	err = client.Auth(auth)
+	if err != nil {
+		fmt.Printf("There's a problem authenticating with your SMTP server: %s\n", err.Error())
+		return false
+	}
+
+	return true
 }
