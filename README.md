@@ -18,7 +18,16 @@ You can also specify a custom config file location by invoking nanolist
 with the `-config` flag: `-config=/path/to/config.ini`
 
 ```ini
+# File for event and error logging. nanolist does not rotate its logs
+# automatically. Recommended path is /var/log/mail/nanolist
+# You'll need to set permissions on it depending on which account your MTA
+# runs nanolist as.
 log = /path/to/logfile
+
+# An sqlite3 database is used for storing the email addresses subscribed to
+# each mailing list. Recommended location is /var/db/nanolist.db
+# You'll need to set permissions on it depending on which account your MTA
+# runs nanolist as.
 database = /path/to/sqlite/database
 
 # Address nanolist should receive user commands on
