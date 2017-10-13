@@ -108,7 +108,8 @@ func handleMessage(msg *Message) {
 		if len(lists) > 0 {
 			for _, list := range lists {
 				if list.CanPost(msg.From) {
-					list.Send(msg)
+					listMsg := msg.ResendAs(list.Id, list.Address)
+					list.Send(listMsg)
 					log.Printf("MESSAGE_SENT ListId=%q Id=%q From=%q To=%q Cc=%q Bcc=%q Subject=%q\n",
 						list.Id, listMsg.Id, listMsg.From, listMsg.To, listMsg.Cc, listMsg.Bcc, listMsg.Subject)
 				} else {
@@ -301,6 +302,31 @@ func (msg *Message) Reply() *Message {
 	return reply
 }
 
+// Prepare a copy of the message that we're forwarding to a list
+func (msg *Message) ResendAs(listId string, listAddress string) *Message {
+	send := &Message{}
+	send.Subject = msg.Subject
+	send.From = msg.From
+	send.To = msg.To
+	send.Cc = msg.Cc
+	send.Date = msg.Date
+	send.Id = msg.Id
+	send.InReplyTo = msg.InReplyTo
+	send.XList = listId + " <" + listAddress + ">"
+
+	// If the destination mailing list is in the Bcc field, keep it there
+	bccList, err := mail.ParseAddressList(msg.Bcc)
+	if err == nil {
+		for _, bcc := range bccList {
+			if bcc.Address == listAddress {
+				send.Bcc = listId + " <" + listAddress + ">"
+				break
+			}
+		}
+	}
+	return send
+}
+
 // Generate a emailable represenation of this message
 func (msg *Message) String() string {
 	var buf bytes.Buffer
@@ -318,6 +344,8 @@ func (msg *Message) String() string {
 	fmt.Fprintf(&buf, "In-Reply-To: %s\r\n", msg.InReplyTo)
 	if len(msg.XList) > 0 {
 		fmt.Fprintf(&buf, "X-Mailing-List: %s\r\n", msg.XList)
+		fmt.Fprintf(&buf, "List-ID: %s\r\n", msg.XList)
+		fmt.Fprintf(&buf, "Sender: %s\r\n", msg.XList)
 	}
 	if len(msg.ContentType) > 0 {
 		fmt.Fprintf(&buf, "Content-Type: %s\r\n", msg.ContentType)
@@ -373,7 +401,6 @@ func (list *List) CanPost(from string) bool {
 
 // Send a message to the mailing list
 func (list *List) Send(msg *Message) {
-	msg.XList = list.Id + " <" + list.Address + ">"
 	recipients := fetchSubscribers(list.Id)
 	for _, bcc := range list.Bcc {
 		recipients = append(recipients, bcc)
