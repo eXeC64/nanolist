@@ -47,6 +47,7 @@ type Message struct {
 	From        string
 	To          string
 	Cc          string
+	Bcc         string
 	Date        string
 	Id          string
 	InReplyTo   string
@@ -90,8 +91,8 @@ func main() {
 			log.Printf("ERROR_PARSING_MESSAGE Error=%q\n", err.Error())
 			os.Exit(0)
 		}
-		log.Printf("MESSAGE_RECEIVED Id=%q From=%q To=%q Cc=%q Subject=%q\n",
-			msg.Id, msg.From, msg.To, msg.Cc, msg.Subject)
+		log.Printf("MESSAGE_RECEIVED Id=%q From=%q To=%q Cc=%q Bcc=%q Subject=%q\n",
+			msg.Id, msg.From, msg.To, msg.Cc, msg.Bcc, msg.Subject)
 		handleMessage(msg)
 	} else {
 		fmt.Printf("Unknown command %s\n", flag.Arg(0))
@@ -108,8 +109,8 @@ func handleMessage(msg *Message) {
 			for _, list := range lists {
 				if list.CanPost(msg.From) {
 					list.Send(msg)
-					log.Printf("MESSAGE_SENT ListId=%q Id=%q From=%q To=%q Cc=%q Subject=%q\n",
-						list.Id, msg.Id, msg.From, msg.To, msg.Cc, msg.Subject)
+					log.Printf("MESSAGE_SENT ListId=%q Id=%q From=%q To=%q Cc=%q Bcc=%q Subject=%q\n",
+						list.Id, listMsg.Id, listMsg.From, listMsg.To, listMsg.Cc, listMsg.Bcc, listMsg.Subject)
 				} else {
 					handleNotAuthorisedToPost(msg)
 				}
@@ -141,7 +142,7 @@ func handleNoDestination(msg *Message) {
 	reply.From = gConfig.CommandAddress
 	reply.Body = "No mailing lists addressed. Your message has not been delivered.\r\n"
 	reply.Send([]string{msg.From})
-	log.Printf("UNKNOWN_DESTINATION From=%q To=%q Cc=%q", msg.From, msg.To, msg.Cc)
+	log.Printf("UNKNOWN_DESTINATION From=%q To=%q Cc=%q Bcc=%q", msg.From, msg.To, msg.Cc, msg.Bcc)
 }
 
 // Reply that the user isn't authorised to post to the list
@@ -150,7 +151,7 @@ func handleNotAuthorisedToPost(msg *Message) {
 	reply.From = gConfig.CommandAddress
 	reply.Body = "You are not an approved poster for this mailing list. Your message has not been delivered.\r\n"
 	reply.Send([]string{msg.From})
-	log.Printf("UNAUTHORISED_POST From=%q To=%q Cc=%q", msg.From, msg.To, msg.Cc)
+	log.Printf("UNAUTHORISED_POST From=%q To=%q Cc=%q Bcc=%q", msg.From, msg.To, msg.Cc, msg.Bcc)
 }
 
 // Reply to an unknown command, giving some help
@@ -284,6 +285,7 @@ func (msg *Message) FromReader(stream io.Reader) error {
 	msg.Body = string(body[:])
 	msg.To = inMessage.Header.Get("To")
 	msg.Cc = inMessage.Header.Get("Cc")
+	msg.Bcc = inMessage.Header.Get("Bcc")
 	msg.Date = inMessage.Header.Get("Date")
 
 	return nil
@@ -306,6 +308,7 @@ func (msg *Message) String() string {
 	fmt.Fprintf(&buf, "From: %s\r\n", msg.From)
 	fmt.Fprintf(&buf, "To: %s\r\n", msg.To)
 	fmt.Fprintf(&buf, "Cc: %s\r\n", msg.Cc)
+	fmt.Fprintf(&buf, "Bcc: %s\r\n", msg.Bcc)
 	if len(msg.Date) > 0 {
 		fmt.Fprintf(&buf, "Date: %s\r\n", msg.Date)
 	}
@@ -579,6 +582,16 @@ func lookupLists(msg *Message) []*List {
 		}
 	}
 
+	bccList, err := mail.ParseAddressList(msg.Bcc)
+	if err == nil {
+		for _, bcc := range bccList {
+			list := lookupList(bcc.Address)
+			if list != nil {
+				lists = append(lists, list)
+			}
+		}
+	}
+
 	return lists
 }
 
@@ -607,6 +620,15 @@ func isToCommandAddress(msg *Message) bool {
 	if err == nil {
 		for _, cc := range ccList {
 			if cc.Address == gConfig.CommandAddress {
+				return true
+			}
+		}
+	}
+
+	bccList, err := mail.ParseAddressList(msg.Bcc)
+	if err == nil {
+		for _, bcc := range bccList {
+			if bcc.Address == gConfig.CommandAddress {
 				return true
 			}
 		}
