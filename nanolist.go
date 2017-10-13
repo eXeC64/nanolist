@@ -43,15 +43,16 @@ type List struct {
 }
 
 type Message struct {
-	Subject   string
-	From      string
-	To        string
-	Cc        string
-	Date      string
-	Id        string
-	InReplyTo string
-	XList     string
-	Body      string
+	Subject     string
+	From        string
+	To          string
+	Cc          string
+	Date        string
+	Id          string
+	InReplyTo   string
+	ContentType string
+	XList       string
+	Body        string
 }
 
 var gConfig *Config
@@ -314,6 +315,9 @@ func (msg *Message) String() string {
 	fmt.Fprintf(&buf, "In-Reply-To: %s\r\n", msg.InReplyTo)
 	if len(msg.XList) > 0 {
 		fmt.Fprintf(&buf, "X-Mailing-List: %s\r\n", msg.XList)
+	}
+	if len(msg.ContentType) > 0 {
+		fmt.Fprintf(&buf, "Content-Type: %s\r\n", msg.ContentType)
 	}
 	fmt.Fprintf(&buf, "Subject: %s\r\n", msg.Subject)
 	fmt.Fprintf(&buf, "\r\n%s", msg.Body)
