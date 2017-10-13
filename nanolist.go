@@ -15,6 +15,7 @@ import (
 	"net/smtp"
 	"os"
 	"strings"
+	"time"
 )
 
 type Config struct {
@@ -46,6 +47,7 @@ type Message struct {
 	From      string
 	To        string
 	Cc        string
+	Date      string
 	Id        string
 	InReplyTo string
 	XList     string
@@ -281,17 +283,19 @@ func (msg *Message) FromReader(stream io.Reader) error {
 	msg.Body = string(body[:])
 	msg.To = inMessage.Header.Get("To")
 	msg.Cc = inMessage.Header.Get("Cc")
+	msg.Date = inMessage.Header.Get("Date")
 
 	return nil
 }
 
 // Create a new message that replies to this message
 func (msg *Message) Reply() *Message {
-	outMessage := &Message{}
-	outMessage.Subject = "Re: " + msg.Subject
-	outMessage.To = msg.From
-	outMessage.InReplyTo = msg.Id
-	return outMessage
+	reply := &Message{}
+	reply.Subject = "Re: " + msg.Subject
+	reply.To = msg.From
+	reply.InReplyTo = msg.Id
+	reply.Date = time.Now().Format("Mon, 2 Jan 2006 15:04:05 -0700")
+	return reply
 }
 
 // Generate a emailable represenation of this message
@@ -301,6 +305,9 @@ func (msg *Message) String() string {
 	fmt.Fprintf(&buf, "From: %s\r\n", msg.From)
 	fmt.Fprintf(&buf, "To: %s\r\n", msg.To)
 	fmt.Fprintf(&buf, "Cc: %s\r\n", msg.Cc)
+	if len(msg.Date) > 0 {
+		fmt.Fprintf(&buf, "Date: %s\r\n", msg.Date)
+	}
 	if len(msg.Id) > 0 {
 		fmt.Fprintf(&buf, "Messsage-ID: %s\r\n", msg.Id)
 	}
