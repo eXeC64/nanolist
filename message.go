@@ -6,15 +6,16 @@ import (
 	"io"
 	"io/ioutil"
 	"net/mail"
+	"time"
 )
 
 type Message struct {
 	Subject     string
-	From        string
-	To          string
-	Cc          string
-	Bcc         string
-	Date        string
+	From        *mail.Address
+	To          []*mail.Address
+	Cc          []*mail.Address
+	Bcc         []*mail.Address
+	Date        time.Time
 	Id          string
 	InReplyTo   string
 	ContentType string
@@ -34,16 +35,41 @@ func ParseMessage(input io.Reader) (*Message, error) {
 		return nil, err
 	}
 
+	date, err := inMessage.Header.Date()
+	if err != nil {
+		return nil, err
+	}
+
+	from, err := mail.ParseAddress(inMessage.Header.Get("From"))
+	if err != nil {
+		return nil, err
+	}
+
+	to, err := inMessage.Header.AddressList("To")
+	if err != nil {
+		return nil, err
+	}
+
+	cc, err := inMessage.Header.AddressList("Cc")
+	if err != nil {
+		return nil, err
+	}
+
+	bcc, err := inMessage.Header.AddressList("Bcc")
+	if err != nil {
+		return nil, err
+	}
+
 	msg := &Message{
 		Subject:   inMessage.Header.Get("Subject"),
-		From:      inMessage.Header.Get("From"),
+		From:      from,
 		Id:        inMessage.Header.Get("Message-ID"),
 		InReplyTo: inMessage.Header.Get("In-Reply-To"),
 		Body:      string(body[:]),
-		To:        inMessage.Header.Get("To"),
-		Cc:        inMessage.Header.Get("Cc"),
-		Bcc:       inMessage.Header.Get("Bcc"),
-		Date:      inMessage.Header.Get("Date"),
+		To:        to,
+		Cc:        cc,
+		Bcc:       bcc,
+		Date:      date,
 	}
 
 	return msg, nil
@@ -56,8 +82,8 @@ func (msg *Message) String() string {
 	fmt.Fprintf(&buf, "To: %s\r\n", msg.To)
 	fmt.Fprintf(&buf, "Cc: %s\r\n", msg.Cc)
 	fmt.Fprintf(&buf, "Bcc: %s\r\n", msg.Bcc)
-	if len(msg.Date) > 0 {
-		fmt.Fprintf(&buf, "Date: %s\r\n", msg.Date)
+	if !msg.Date.IsZero() {
+		fmt.Fprintf(&buf, "Date: %s\r\n", msg.Date.Format("Mon, 2 Jan 2006 15:04:05 -0700"))
 	}
 	if len(msg.Id) > 0 {
 		fmt.Fprintf(&buf, "Messsage-ID: %s\r\n", msg.Id)

@@ -29,5 +29,5 @@ func (s *SMTPSender) Send(msg *Message, recipients []string) error {
 		return errors.New("SMTPSender.Send called before ready")
 	}
 	auth := smtp.PlainAuth("", s.username, s.password, s.host)
-	return smtp.SendMail(s.host+":"+s.port, auth, msg.From, recipients, []byte(msg.String()))
+	return smtp.SendMail(s.host+":"+s.port, auth, msg.From.Address, recipients, []byte(msg.String()))
 }
