@@ -42,20 +42,6 @@ type List struct {
 	Bcc             []string `ini:"bcc,omitempty"`
 }
 
-type Message struct {
-	Subject     string
-	From        string
-	To          string
-	Cc          string
-	Bcc         string
-	Date        string
-	Id          string
-	InReplyTo   string
-	ContentType string
-	XList       string
-	Body        string
-}
-
 var gConfig *Config
 
 // Entry point
