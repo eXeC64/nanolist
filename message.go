@@ -2,10 +2,12 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/mail"
+	"strings"
 	"time"
 )
 
@@ -37,27 +39,27 @@ func ParseMessage(input io.Reader) (*Message, error) {
 
 	date, err := inMessage.Header.Date()
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Date parsing failed: " + err.Error())
 	}
 
 	from, err := mail.ParseAddress(inMessage.Header.Get("From"))
 	if err != nil {
-		return nil, err
+		return nil, errors.New("From parsing failed: " + err.Error())
 	}
 
 	to, err := inMessage.Header.AddressList("To")
 	if err != nil {
-		return nil, err
+		return nil, errors.New("To parsing failed: " + err.Error())
 	}
 
 	cc, err := inMessage.Header.AddressList("Cc")
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Cc parsing failed: " + err.Error())
 	}
 
 	bcc, err := inMessage.Header.AddressList("Bcc")
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Bcc parsing failed: " + err.Error())
 	}
 
 	msg := &Message{
@@ -75,18 +77,28 @@ func ParseMessage(input io.Reader) (*Message, error) {
 	return msg, nil
 }
 
+func formatAddressList(addresses []*mail.Address) string {
+	strs := []string{}
+
+	for _, addr := range addresses {
+		strs = append(strs, addr.String())
+	}
+
+	return strings.Join(strs, ", ")
+}
+
 func (msg *Message) String() string {
 	var buf bytes.Buffer
 
 	fmt.Fprintf(&buf, "From: %s\r\n", msg.From)
-	fmt.Fprintf(&buf, "To: %s\r\n", msg.To)
-	fmt.Fprintf(&buf, "Cc: %s\r\n", msg.Cc)
-	fmt.Fprintf(&buf, "Bcc: %s\r\n", msg.Bcc)
+	fmt.Fprintf(&buf, "To: %s\r\n", formatAddressList(msg.To))
+	fmt.Fprintf(&buf, "Cc: %s\r\n", formatAddressList(msg.Cc))
+	fmt.Fprintf(&buf, "Bcc: %s\r\n", formatAddressList(msg.Bcc))
 	if !msg.Date.IsZero() {
 		fmt.Fprintf(&buf, "Date: %s\r\n", msg.Date.Format("Mon, 2 Jan 2006 15:04:05 -0700"))
 	}
 	if len(msg.Id) > 0 {
-		fmt.Fprintf(&buf, "Messsage-ID: %s\r\n", msg.Id)
+		fmt.Fprintf(&buf, "Message-ID: %s\r\n", msg.Id)
 	}
 	fmt.Fprintf(&buf, "In-Reply-To: %s\r\n", msg.InReplyTo)
 	if len(msg.XList) > 0 {
