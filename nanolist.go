@@ -18,6 +18,17 @@ import (
 	"time"
 )
 
+type LegacyList struct {
+	Name            string `ini:"name"`
+	Description     string `ini:"description"`
+	Id              string
+	Address         string   `ini:"address"`
+	Hidden          bool     `ini:"hidden"`
+	SubscribersOnly bool     `ini:"subscribers_only"`
+	Posters         []string `ini:"posters,omitempty"`
+	Bcc             []string `ini:"bcc,omitempty"`
+}
+
 type Config struct {
 	CommandAddress string `ini:"command_address"`
 	Log            string `ini:"log"`
@@ -26,7 +37,7 @@ type Config struct {
 	SMTPPort       string `ini:"smtp_port"`
 	SMTPUsername   string `ini:"smtp_username"`
 	SMTPPassword   string `ini:"smtp_password"`
-	Lists          map[string]*List
+	Lists          map[string]*LegacyList
 	Debug          bool
 	ConfigFile     string
 }
@@ -368,7 +379,7 @@ func (msg *LegacyMessage) Send(recipients []string) {
 // MAILING LIST LOGIC /////////////////////////////////////////////////////////
 
 // Check if the user is authorised to post to this mailing list
-func (list *List) CanPost(from string) bool {
+func (list *LegacyList) CanPost(from string) bool {
 
 	// Is this list restricted to subscribers only?
 	if list.SubscribersOnly && !isSubscribed(from, list.Id) {
@@ -389,7 +400,7 @@ func (list *List) CanPost(from string) bool {
 }
 
 // Send a message to the mailing list
-func (list *List) Send(msg *LegacyMessage) {
+func (list *LegacyList) Send(msg *LegacyMessage) {
 	recipients := fetchSubscribers(list.Id)
 	for _, bcc := range list.Bcc {
 		recipients = append(recipients, bcc)
@@ -560,10 +571,10 @@ func loadConfig() {
 		os.Exit(0)
 	}
 
-	gConfig.Lists = make(map[string]*List)
+	gConfig.Lists = make(map[string]*LegacyList)
 
 	for _, section := range cfg.ChildSections("list") {
-		list := &List{}
+		list := &LegacyList{}
 		err = section.MapTo(list)
 		if err != nil {
 			log.Printf("CONFIG_ERROR Error=%q\n", err.Error())
@@ -575,8 +586,8 @@ func loadConfig() {
 }
 
 // Retrieve a list of mailing lists that are recipients of the given message
-func lookupLists(msg *LegacyMessage) []*List {
-	lists := []*List{}
+func lookupLists(msg *LegacyMessage) []*LegacyList {
+	lists := []*LegacyList{}
 
 	toList, err := mail.ParseAddressList(msg.To)
 	if err == nil {
@@ -612,7 +623,7 @@ func lookupLists(msg *LegacyMessage) []*List {
 }
 
 // Look up a mailing list by id or address
-func lookupList(listKey string) *List {
+func lookupList(listKey string) *LegacyList {
 	for _, list := range gConfig.Lists {
 		if listKey == list.Id || listKey == list.Address {
 			return list
