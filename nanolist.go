@@ -31,6 +31,20 @@ type Config struct {
 	ConfigFile     string
 }
 
+type LegacyMessage struct {
+	Subject     string
+	From        string
+	To          string
+	Cc          string
+	Bcc         string
+	Date        string
+	Id          string
+	InReplyTo   string
+	ContentType string
+	XList       string
+	Body        string
+}
+
 var gConfig *Config
 
 // Entry point
@@ -60,7 +74,7 @@ func main() {
 	requireLog()
 
 	if flag.Arg(0) == "message" {
-		msg := &Message{}
+		msg := &LegacyMessage{}
 		err := msg.FromReader(bufio.NewReader(os.Stdin))
 		if err != nil {
 			log.Printf("ERROR_PARSING_MESSAGE Error=%q\n", err.Error())
@@ -75,7 +89,7 @@ func main() {
 }
 
 // Figure out if this is a command, or a mailing list post
-func handleMessage(msg *Message) {
+func handleMessage(msg *LegacyMessage) {
 	if isToCommandAddress(msg) {
 		handleCommand(msg)
 	} else {
@@ -98,7 +112,7 @@ func handleMessage(msg *Message) {
 }
 
 // Handle the command given by the user
-func handleCommand(msg *Message) {
+func handleCommand(msg *LegacyMessage) {
 	if msg.Subject == "lists" {
 		handleShowLists(msg)
 	} else if msg.Subject == "help" {
@@ -113,7 +127,7 @@ func handleCommand(msg *Message) {
 }
 
 // Reply to a message that has nowhere to go
-func handleNoDestination(msg *Message) {
+func handleNoDestination(msg *LegacyMessage) {
 	reply := msg.Reply()
 	reply.From = gConfig.CommandAddress
 	reply.Body = "No mailing lists addressed. Your message has not been delivered.\r\n"
@@ -122,7 +136,7 @@ func handleNoDestination(msg *Message) {
 }
 
 // Reply that the user isn't authorised to post to the list
-func handleNotAuthorisedToPost(msg *Message) {
+func handleNotAuthorisedToPost(msg *LegacyMessage) {
 	reply := msg.Reply()
 	reply.From = gConfig.CommandAddress
 	reply.Body = "You are not an approved poster for this mailing list. Your message has not been delivered.\r\n"
@@ -131,7 +145,7 @@ func handleNotAuthorisedToPost(msg *Message) {
 }
 
 // Reply to an unknown command, giving some help
-func handleUnknownCommand(msg *Message) {
+func handleUnknownCommand(msg *LegacyMessage) {
 	reply := msg.Reply()
 	reply.From = gConfig.CommandAddress
 	reply.Body = fmt.Sprintf(
@@ -144,7 +158,7 @@ func handleUnknownCommand(msg *Message) {
 }
 
 // Reply to a help command with help information
-func handleHelp(msg *Message) {
+func handleHelp(msg *LegacyMessage) {
 	var body bytes.Buffer
 	fmt.Fprintf(&body, commandInfo())
 	reply := msg.Reply()
@@ -155,7 +169,7 @@ func handleHelp(msg *Message) {
 }
 
 // Reply to a show mailing lists command with a list of mailing lists
-func handleShowLists(msg *Message) {
+func handleShowLists(msg *LegacyMessage) {
 	var body bytes.Buffer
 	fmt.Fprintf(&body, "Available mailing lists:\r\n\r\n")
 	for _, list := range gConfig.Lists {
@@ -181,7 +195,7 @@ func handleShowLists(msg *Message) {
 }
 
 // Handle a subscribe command
-func handleSubscribe(msg *Message) {
+func handleSubscribe(msg *LegacyMessage) {
 	listId := strings.TrimPrefix(msg.Subject, "subscribe ")
 	list := lookupList(listId)
 
@@ -211,7 +225,7 @@ func handleSubscribe(msg *Message) {
 }
 
 // Handle an unsubscribe command
-func handleUnsubscribe(msg *Message) {
+func handleUnsubscribe(msg *LegacyMessage) {
 	listId := strings.TrimPrefix(msg.Subject, "unsubscribe ")
 	list := lookupList(listId)
 
@@ -243,7 +257,7 @@ func handleUnsubscribe(msg *Message) {
 // MESSAGE LOGIC //////////////////////////////////////////////////////////////
 
 // Read a message from the given io.Reader
-func (msg *Message) FromReader(stream io.Reader) error {
+func (msg *LegacyMessage) FromReader(stream io.Reader) error {
 	inMessage, err := mail.ReadMessage(stream)
 	if err != nil {
 		return err
@@ -268,8 +282,8 @@ func (msg *Message) FromReader(stream io.Reader) error {
 }
 
 // Create a new message that replies to this message
-func (msg *Message) Reply() *Message {
-	reply := &Message{}
+func (msg *LegacyMessage) Reply() *LegacyMessage {
+	reply := &LegacyMessage{}
 	reply.Subject = "Re: " + msg.Subject
 	reply.To = msg.From
 	reply.InReplyTo = msg.Id
@@ -278,8 +292,8 @@ func (msg *Message) Reply() *Message {
 }
 
 // Prepare a copy of the message that we're forwarding to a list
-func (msg *Message) ResendAs(listId string, listAddress string) *Message {
-	send := &Message{}
+func (msg *LegacyMessage) ResendAs(listId string, listAddress string) *LegacyMessage {
+	send := &LegacyMessage{}
 	send.Subject = msg.Subject
 	send.From = msg.From
 	send.To = msg.To
@@ -303,7 +317,7 @@ func (msg *Message) ResendAs(listId string, listAddress string) *Message {
 }
 
 // Generate a emailable represenation of this message
-func (msg *Message) String() string {
+func (msg *LegacyMessage) String() string {
 	var buf bytes.Buffer
 
 	fmt.Fprintf(&buf, "From: %s\r\n", msg.From)
@@ -331,7 +345,7 @@ func (msg *Message) String() string {
 	return buf.String()
 }
 
-func (msg *Message) Send(recipients []string) {
+func (msg *LegacyMessage) Send(recipients []string) {
 	if gConfig.Debug {
 		fmt.Printf("------------------------------------------------------------\n")
 		fmt.Printf("SENDING MESSAGE TO:\n")
@@ -375,7 +389,7 @@ func (list *List) CanPost(from string) bool {
 }
 
 // Send a message to the mailing list
-func (list *List) Send(msg *Message) {
+func (list *List) Send(msg *LegacyMessage) {
 	recipients := fetchSubscribers(list.Id)
 	for _, bcc := range list.Bcc {
 		recipients = append(recipients, bcc)
@@ -561,7 +575,7 @@ func loadConfig() {
 }
 
 // Retrieve a list of mailing lists that are recipients of the given message
-func lookupLists(msg *Message) []*List {
+func lookupLists(msg *LegacyMessage) []*List {
 	lists := []*List{}
 
 	toList, err := mail.ParseAddressList(msg.To)
@@ -608,7 +622,7 @@ func lookupList(listKey string) *List {
 }
 
 // Is the message bound for our command address?
-func isToCommandAddress(msg *Message) bool {
+func isToCommandAddress(msg *LegacyMessage) bool {
 	toList, err := mail.ParseAddressList(msg.To)
 	if err == nil {
 		for _, to := range toList {
