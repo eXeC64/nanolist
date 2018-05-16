@@ -44,6 +44,20 @@ func (m *MemoryListManager) FetchListIds() ([]string, error) {
 	return ids, nil
 }
 
+func (m *MemoryListManager) FetchListAddresses() ([]string, error) {
+	if m.lists == nil {
+		m.init()
+	}
+
+	addresses := []string{}
+
+	for _, list := range m.lists {
+		addresses = append(addresses, list.Address)
+	}
+
+	return addresses, nil
+}
+
 func (m *MemoryListManager) FetchList(id string) (*List, error) {
 	if m.lists == nil {
 		m.init()
