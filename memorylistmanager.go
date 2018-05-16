@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"sort"
 )
 
 type MemoryListManager struct {
@@ -41,6 +42,8 @@ func (m *MemoryListManager) FetchListIds() ([]string, error) {
 		ids = append(ids, id)
 	}
 
+	sort.Strings(ids)
+
 	return ids, nil
 }
 
@@ -54,6 +57,8 @@ func (m *MemoryListManager) FetchListAddresses() ([]string, error) {
 	for _, list := range m.lists {
 		addresses = append(addresses, list.Address)
 	}
+
+	sort.Strings(addresses)
 
 	return addresses, nil
 }
