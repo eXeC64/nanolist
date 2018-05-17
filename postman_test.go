@@ -148,6 +148,10 @@ func TestListsCommand(t *testing.T) {
 		t.Errorf("Response body did not contain expected lists: %q", msg.Body)
 	}
 
+	if strings.Contains(msg.Body, "secret") {
+		t.Errorf("Response body contained secret chat: %q", msg.Body)
+	}
+
 	if msg.To[0].Address != "user@example.com" {
 		t.Errorf("Response To address was incorrect: %q", msg.To[0].Address)
 	}
