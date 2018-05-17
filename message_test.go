@@ -186,3 +186,34 @@ func TestStringMessage(t *testing.T) {
 		t.Errorf("Message String-ified incorrectly.\nExpect: '%q'\n\n\nActual: '%q'", expected, str)
 	}
 }
+
+func TestReply(t *testing.T) {
+	msg := &Message{
+		Subject: "This is a test",
+		From:    &mail.Address{"James Bond", "bond@example.com"},
+		Id:      "test-id@example.com",
+	}
+
+	reply := msg.Reply()
+
+	if reply.Subject != "Re: This is a test" {
+		t.Errorf("Incorrect Subject: %q", reply.Subject)
+	}
+
+	if len(reply.To) != 1 {
+		t.Errorf("Incorrect number of recipients: %d", len(reply.To))
+	} else {
+
+		if reply.To[0].Name != "James Bond" {
+			t.Errorf("Incorrect To name: %q", reply.To[0].Name)
+		}
+
+		if reply.To[0].Address != "bond@example.com" {
+			t.Errorf("Incorrect To address: %q", reply.To[0].Address)
+		}
+	}
+
+	if reply.InReplyTo != "test-id@example.com" {
+		t.Errorf("Incorrect InReplyTo: %q", reply.InReplyTo)
+	}
+}

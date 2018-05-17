@@ -95,3 +95,12 @@ func (msg *Message) String() string {
 
 	return buf.String()
 }
+
+func (msg *Message) Reply() *Message {
+	return &Message{
+		Subject:   "Re: " + msg.Subject,
+		To:        []*mail.Address{msg.From},
+		Date:      time.Now(),
+		InReplyTo: msg.Id,
+	}
+}
