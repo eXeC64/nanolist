@@ -114,6 +114,48 @@ func TestParseMessage(t *testing.T) {
 	}
 }
 
+func TestParseSlimMessage(t *testing.T) {
+	fakeInput := strings.NewReader("" +
+		"From: \"Example Person\" <test@example.com>\r\n" +
+		"To: \"Alice\" <alice@example.com>\r\n" +
+		"Subject: My Test Subject\r\n" +
+		"\r\n")
+
+	msg, err := ParseMessage(fakeInput)
+	if err != nil {
+		t.Errorf("Parsing failed with error: %s", err.Error())
+		return
+	}
+
+	if msg == nil {
+		t.Errorf("Returned message was nil")
+		return
+	}
+
+	if msg.From.Name != "Example Person" {
+		t.Error("From name parsed incorrectly")
+	}
+
+	if msg.From.Address != "test@example.com" {
+		t.Error("From name parsed incorrectly")
+	}
+
+	if msg.Subject != "My Test Subject" {
+		t.Error("Subject parsed incorrectly")
+	}
+
+	if len(msg.To) != 1 {
+		t.Error("To parsed incorrect number of addresses")
+	} else {
+		if msg.To[0].Name != "Alice" {
+			t.Error("To name parsed incorrectly")
+		}
+		if msg.To[0].Address != "alice@example.com" {
+			t.Error("To address parsed incorrectly")
+		}
+	}
+}
+
 func TestStringMessage(t *testing.T) {
 	msg := &Message{
 		Subject:   "Just a test subject",

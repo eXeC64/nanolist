@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -37,30 +36,12 @@ func ParseMessage(input io.Reader) (*Message, error) {
 		return nil, err
 	}
 
-	date, err := inMessage.Header.Date()
-	if err != nil {
-		return nil, errors.New("Date parsing failed: " + err.Error())
-	}
-
-	from, err := mail.ParseAddress(inMessage.Header.Get("From"))
-	if err != nil {
-		return nil, errors.New("From parsing failed: " + err.Error())
-	}
-
-	to, err := inMessage.Header.AddressList("To")
-	if err != nil {
-		return nil, errors.New("To parsing failed: " + err.Error())
-	}
-
-	cc, err := inMessage.Header.AddressList("Cc")
-	if err != nil {
-		return nil, errors.New("Cc parsing failed: " + err.Error())
-	}
-
-	bcc, err := inMessage.Header.AddressList("Bcc")
-	if err != nil {
-		return nil, errors.New("Bcc parsing failed: " + err.Error())
-	}
+	// Pull these fields if available
+	date, _ := inMessage.Header.Date()
+	from, _ := mail.ParseAddress(inMessage.Header.Get("From"))
+	to, _ := inMessage.Header.AddressList("To")
+	cc, _ := inMessage.Header.AddressList("Cc")
+	bcc, _ := inMessage.Header.AddressList("Bcc")
 
 	msg := &Message{
 		Subject:   inMessage.Header.Get("Subject"),
