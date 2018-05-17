@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bytes"
+	"fmt"
 	"io"
 	"log"
 	"net/mail"
+	"sort"
 	"strings"
 )
 
@@ -81,7 +84,43 @@ func (p *Postman) handleHelpCommand(msg *Message) {
 }
 
 func (p *Postman) handleListsCommand(msg *Message) {
-	// TODO
+	ids, err := p.Lists.FetchListIds()
+	if err != nil {
+		p.Log.Printf("Failed to fetch list ids: %q", err.Error())
+		p.sendReply(msg, "There was an internal error. Please try again later.")
+		return
+	}
+
+	sort.Strings(ids)
+	lists := []*List{}
+	for _, id := range ids {
+		list, err := p.Lists.FetchList(id)
+		if err != nil {
+			p.Log.Printf("Failed to fetch list id %q: %q", id, err.Error())
+			p.sendReply(msg, "There was an internal error. Please try again later.")
+			return
+		}
+		lists = append(lists, list)
+	}
+
+	var body bytes.Buffer
+	fmt.Fprintf(&body, "Available mailing lists:\r\n\r\n")
+	for _, list := range lists {
+		if !list.Hidden {
+			fmt.Fprintf(&body,
+				"Id: %s\r\n"+
+					"Name: %s\r\n"+
+					"Description: %s\r\n"+
+					"Address: %s\r\n\r\n",
+				list.Id, list.Name, list.Description, list.Address)
+		}
+	}
+
+	fmt.Fprintf(&body,
+		"\r\nTo subscribe to a mailing list, email %s with 'subscribe <list-id>' as the subject.\r\n",
+		p.CommandAddress)
+
+	p.sendReply(msg, body.String())
 }
 
 func (p *Postman) handleSubscribeCommand(msg *Message, args []string) {
