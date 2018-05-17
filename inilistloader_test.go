@@ -9,29 +9,29 @@ func TestLoadingLists(t *testing.T) {
 
 	lm := &MemoryListManager{}
 
-	ini := strings.NewReader("" +
-		"[list.golang]\n" +
-		"# Address this list should receieve mail on\n" +
-		"address = golang@example.com\n" +
-		"# Information to show in the list of mailing lists\n" +
-		"name = \"Go programming\"\n" +
-		"description = \"General discussion of Go programming\"\n" +
-		"# bcc all posts to the listed addresses for archival\n" +
-		"bcc = archive@example.com, datahoarder@example.com\n" +
-		"\n" +
-		"[list.announcements]\n" +
-		"address = announce@example.com\n" +
-		"name = \"Announcements\"\n" +
-		"description = \"Important announcements\"\n" +
-		"# List of email addresses that are permitted to post to this list\n" +
-		"posters = admin@example.com, moderator@example.com\n" +
-		"\n" +
-		"[list.fight-club]\n" +
-		"address = robertpaulson99@example.com\n" +
-		"# Don't tell users this list exists\n" +
-		"hidden = true\n" +
-		"# Only let subscribed users post to this list\n" +
-		"subscribers_only = true\n")
+	ini := strings.NewReader(`
+[list.golang]
+# Address this list should receieve mail on
+address = golang@example.com
+# Information to show in the list of mailing lists
+name = "Go programming"
+description = "General discussion of Go programming"
+# bcc all posts to the listed addresses for archival
+bcc = archive@example.com, datahoarder@example.com
+
+[list.announcements]
+address = announce@example.com
+name = "Announcements"
+description = "Important announcements"
+# List of email addresses that are permitted to post to this list
+posters = admin@example.com, moderator@example.com
+
+[list.fight-club]
+address = robertpaulson99@example.com
+# Don't tell users this list exists
+hidden = true
+# Only let subscribed users post to this list
+subscribers_only = true`)
 
 	ll := &INIListLoader{ini}
 
