@@ -22,7 +22,7 @@ func createTestSQLiteSubscriptionManager() (SubscriptionManager, error) {
 	return sm, nil
 }
 
-func testSubscribeUnsubscribe(t *testing.T) {
+func TestSubscribeUnsubscribe(t *testing.T) {
 	sm, err := createTestSQLiteSubscriptionManager()
 	if err != nil {
 		t.Errorf("Failed to create test SQLiteSubscriptionManager: %q", err)
@@ -31,7 +31,7 @@ func testSubscribeUnsubscribe(t *testing.T) {
 	checkSubscribeUnsubscribe(t, sm)
 }
 
-func testUnsubscribeAll(t *testing.T) {
+func TestUnsubscribeAll(t *testing.T) {
 	sm, err := createTestSQLiteSubscriptionManager()
 	if err != nil {
 		t.Errorf("Failed to create test SQLiteSubscriptionManager: %q", err)
@@ -40,7 +40,7 @@ func testUnsubscribeAll(t *testing.T) {
 	checkUnsubscribeAll(t, sm)
 }
 
-func testFetchSubscribers(t *testing.T) {
+func TestFetchSubscribers(t *testing.T) {
 	sm, err := createTestSQLiteSubscriptionManager()
 	if err != nil {
 		t.Errorf("Failed to create test SQLiteSubscriptionManager: %q", err)

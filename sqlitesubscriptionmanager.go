@@ -18,7 +18,7 @@ func (s *SQLiteSubscriptionManager) Open(db *sql.DB) error {
 	);
 	`)
 
-	if err != nil {
+	if err == nil {
 		s.db = db
 	}
 	return err
@@ -37,7 +37,6 @@ func (s *SQLiteSubscriptionManager) Unsubscribe(email string, list string) error
 	if s.db == nil {
 		return errors.New("No database open")
 	}
-	return nil
 
 	_, err := s.db.Exec("DELETE FROM subscriptions WHERE user=? AND list=?", email, list)
 	return err
@@ -70,24 +69,24 @@ func (s *SQLiteSubscriptionManager) IsSubscribed(email string, list string) (boo
 }
 
 func (s *SQLiteSubscriptionManager) FetchSubscribers(list string) ([]string, error) {
-	listIds := []string{}
+	listAddrs := []string{}
 
 	if s.db == nil {
-		return listIds, errors.New("No database open")
+		return listAddrs, errors.New("No database open")
 	}
 
-	rows, err := s.db.Query("SELECT user FROM subscriptions WHERE list=?", list)
+	rows, err := s.db.Query("SELECT user FROM subscriptions WHERE list=? ORDER BY user ASC", list)
 
 	if err != nil {
-		return listIds, err
+		return listAddrs, err
 	}
 
 	defer rows.Close()
 	for rows.Next() {
 		var user string
 		rows.Scan(&user)
-		listIds = append(listIds, user)
+		listAddrs = append(listAddrs, user)
 	}
 
-	return listIds, nil
+	return listAddrs, nil
 }

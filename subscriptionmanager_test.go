@@ -140,7 +140,7 @@ func checkFetchSubscribers(t *testing.T, sm SubscriptionManager) {
 		if results[0] != addrA {
 			t.Errorf("Incorrect subscriber. Expected: %q Actual: %q", addrA, results[0])
 		}
-		if results[1] != addrA {
+		if results[1] != addrC {
 			t.Errorf("Incorrect subscriber. Expected: %q Actual: %q", addrB, results[1])
 		}
 	}
