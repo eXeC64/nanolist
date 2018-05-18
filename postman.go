@@ -165,5 +165,40 @@ func (p *Postman) handleSubscribeCommand(msg *Message, args []string) {
 }
 
 func (p *Postman) handleUnsubscribeCommand(msg *Message, args []string) {
-	// TODO
+	if len(args) < 1 {
+		p.sendReply(msg, "No mailing list id specified. Unable to unsubscribe you.")
+		return
+	}
+
+	const noSuchList string = "No such list exists. Please check you entered its id correctly."
+
+	listId := args[0]
+
+	exists, err := p.Lists.IsValidList(listId)
+	if err != nil {
+		p.sendReply(msg, errMsg)
+		return
+	}
+	if !exists {
+		p.sendReply(msg, noSuchList)
+		return
+	}
+
+	isSubscribed, err := p.Subscriptions.IsSubscribed(msg.From.Address, listId)
+	if err != nil {
+		p.sendReply(msg, errMsg)
+		return
+	}
+	if !isSubscribed {
+		p.sendReply(msg, "You are not subscribed to "+listId)
+		return
+	}
+
+	err = p.Subscriptions.Unsubscribe(msg.From.Address, listId)
+	if err != nil {
+		p.sendReply(msg, errMsg)
+		return
+	}
+
+	p.sendReply(msg, "You have been unsubscribed from "+listId)
 }
