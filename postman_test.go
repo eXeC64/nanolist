@@ -130,3 +130,72 @@ func TestListsCommand(t *testing.T) {
 		"Description: All things poker\r\n"+
 		"Address: poker@example.com\r\n")
 }
+
+func TestSubscribeCommand(t *testing.T) {
+
+	// GIVEN
+	senderMock := &MockSender{}
+	subManagerMock := &MockSubscriptionManager{}
+	listManager := &MemoryListManager{}
+
+	listManager.Add(&List{
+		Name:        "Poker Discussion",
+		Description: "All things poker",
+		Id:          "poker",
+		Address:     "poker@example.com",
+	})
+
+	listManager.Add(&List{
+		Name:        "Nomic",
+		Description: "Lets play nomic",
+		Id:          "nomic",
+		Address:     "nomic-business@example.com",
+	})
+
+	pm := &Postman{
+		CommandAddress: "test@example.com",
+		Log:            log.New(&NullWriter{}, "", 0),
+		Sender:         senderMock,
+		Subscriptions:  subManagerMock,
+		Lists:          listManager,
+	}
+
+	subManagerMock.On("IsSubscribed", mock.Anything, mock.Anything).Return(false, nil).Once()
+	subManagerMock.On("Subscribe", mock.Anything, mock.Anything).Return(nil).Once()
+	senderMock.On("Send", mock.Anything, mock.Anything).Return(nil).Once()
+
+	input := strings.NewReader("To: test@example.com\r\n" +
+		"From: user@example.com\r\n" +
+		"Subject: subscribe nomic\r\n" +
+		"\r\n\r\n")
+
+	// WHEN
+	pm.HandleMail(input)
+
+	// THEN
+	if len(subManagerMock.Calls) < 2 {
+		t.Errorf("Subscribe or IsSubscribed not called")
+	} else {
+
+		// IsSubscribed call
+		args := subManagerMock.Calls[0].Arguments
+		if args.String(0) != "user@example.com" {
+			t.Errorf("Incorrect email used in IsSubscribed call")
+		}
+		if args.String(1) != "nomic" {
+			t.Errorf("Incorrect list id used in IsSubscribed call")
+		}
+
+		// Subscribe call
+		args = subManagerMock.Calls[1].Arguments
+		if args.String(0) != "user@example.com" {
+			t.Errorf("Incorrect email used in Subscribe call")
+		}
+		if args.String(1) != "nomic" {
+			t.Errorf("Incorrect list id used in Subscribe call")
+		}
+	}
+
+	// Send call
+	checkResponse(t, senderMock, "user@example.com", "You have been subscribed to nomic")
+}
