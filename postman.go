@@ -19,6 +19,7 @@ type Postman struct {
 }
 
 const errMsg string = "There was an internal error. Please try again later."
+const noSuchList string = "No such list exists. Please check you entered its address correctly."
 
 func (p *Postman) HandleMail(input io.Reader) {
 
@@ -147,8 +148,6 @@ func (p *Postman) handleSubscribeCommand(msg *Message, args []string) {
 		return
 	}
 
-	const noSuchList string = "No such list exists. Please check you entered its address correctly."
-
 	listAddr := args[0]
 
 	exists, err := p.Lists.IsValidList(listAddr)
@@ -185,8 +184,6 @@ func (p *Postman) handleUnsubscribeCommand(msg *Message, args []string) {
 		p.sendReply(msg, "No mailing list address specified. Unable to unsubscribe you.")
 		return
 	}
-
-	const noSuchList string = "No such list exists. Please check you entered its address correctly."
 
 	listAddr := args[0]
 
