@@ -31,6 +31,11 @@ func (m *MemoryListManager) Remove(id string) error {
 	return nil
 }
 
+func (m *MemoryListManager) IsValidList(id string) (bool, error) {
+	_, exists := m.lists[id]
+	return exists, nil
+}
+
 func (m *MemoryListManager) FetchListIds() ([]string, error) {
 	if m.lists == nil {
 		m.init()

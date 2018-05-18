@@ -64,10 +64,28 @@ func TestRemoveList(t *testing.T) {
 		return
 	}
 
+	exists, err := lm.IsValidList(list.Id)
+	if err != nil {
+		t.Errorf("Checking exists failed with error: %s", err.Error())
+		return
+	}
+	if !exists {
+		t.Error("List failed IsValid after addition")
+	}
+
 	err = lm.Remove("test-list")
 	if err != nil {
 		t.Errorf("Removing failed with error: %s", err.Error())
 		return
+	}
+
+	exists, err = lm.IsValidList(list.Id)
+	if err != nil {
+		t.Errorf("Checking exists failed with error: %s", err.Error())
+		return
+	}
+	if exists {
+		t.Error("List passed IsValid after removal")
 	}
 }
 
