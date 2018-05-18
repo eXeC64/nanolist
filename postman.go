@@ -67,7 +67,7 @@ func (p *Postman) sendToList(msg *Message, list string) {
 
 func (p *Postman) sendReply(msg *Message, response string) {
 	reply := msg.Reply()
-	reply.From = &mail.Address{"", p.CommandAddress}
+	reply.From = &mail.Address{Name: "", Address: p.CommandAddress}
 	reply.Body = response
 	p.Sender.Send(reply, []string{reply.To[0].Address})
 }

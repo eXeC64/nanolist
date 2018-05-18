@@ -159,7 +159,7 @@ func TestParseSlimMessage(t *testing.T) {
 func TestStringMessage(t *testing.T) {
 	msg := &Message{
 		Subject:   "Just a test subject",
-		From:      &mail.Address{"James Bond", "bond@example.com"},
+		From:      &mail.Address{Name: "James Bond", Address: "bond@example.com"},
 		Id:        "test-id@example.com",
 		InReplyTo: "other-test-id@example.com",
 		Body:      "This is my test body\nIt contains multiple lines!",
@@ -190,7 +190,7 @@ func TestStringMessage(t *testing.T) {
 func TestReply(t *testing.T) {
 	msg := &Message{
 		Subject: "This is a test",
-		From:    &mail.Address{"James Bond", "bond@example.com"},
+		From:    &mail.Address{Name: "James Bond", Address: "bond@example.com"},
 		Id:      "test-id@example.com",
 	}
 
