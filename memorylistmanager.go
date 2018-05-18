@@ -18,21 +18,21 @@ func (m *MemoryListManager) Add(list *List) error {
 		m.init()
 	}
 
-	m.lists[list.Id] = list
+	m.lists[list.Address] = list
 	return nil
 }
 
-func (m *MemoryListManager) Remove(id string) error {
+func (m *MemoryListManager) Remove(address string) error {
 	if m.lists == nil {
 		m.init()
 	}
 
-	delete(m.lists, id)
+	delete(m.lists, address)
 	return nil
 }
 
-func (m *MemoryListManager) IsValidList(id string) (bool, error) {
-	_, exists := m.lists[id]
+func (m *MemoryListManager) IsValidList(address string) (bool, error) {
+	_, exists := m.lists[address]
 	return exists, nil
 }
 
@@ -41,15 +41,15 @@ func (m *MemoryListManager) FetchListIds() ([]string, error) {
 		m.init()
 	}
 
-	ids := []string{}
+	addrs := []string{}
 
-	for id, _ := range m.lists {
-		ids = append(ids, id)
+	for address, _ := range m.lists {
+		addrs = append(addrs, address)
 	}
 
-	sort.Strings(ids)
+	sort.Strings(addrs)
 
-	return ids, nil
+	return addrs, nil
 }
 
 func (m *MemoryListManager) FetchListAddresses() ([]string, error) {
@@ -68,12 +68,12 @@ func (m *MemoryListManager) FetchListAddresses() ([]string, error) {
 	return addresses, nil
 }
 
-func (m *MemoryListManager) FetchList(id string) (*List, error) {
+func (m *MemoryListManager) FetchList(address string) (*List, error) {
 	if m.lists == nil {
 		m.init()
 	}
 
-	list, ok := m.lists[id]
+	list, ok := m.lists[address]
 	if !ok {
 		return nil, errors.New("Invalid list")
 	}

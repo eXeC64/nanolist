@@ -2,9 +2,8 @@ package main
 
 type ListManager interface {
 	Add(list *List) error
-	Remove(id string) error
-	IsValidList(id string) (bool, error)
-	FetchListIds() ([]string, error)
+	Remove(address string) error
+	IsValidList(address string) (bool, error)
 	FetchListAddresses() ([]string, error)
-	FetchList(id string) (*List, error)
+	FetchList(address string) (*List, error)
 }

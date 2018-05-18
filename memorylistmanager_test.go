@@ -24,7 +24,7 @@ func TestAddAndFetchList(t *testing.T) {
 		return
 	}
 
-	outList, err := lm.FetchList("test-list")
+	outList, err := lm.FetchList("test@example.com")
 	if err != nil {
 		t.Errorf("Fetching failed with error: %s", err.Error())
 		return
@@ -64,7 +64,7 @@ func TestRemoveList(t *testing.T) {
 		return
 	}
 
-	exists, err := lm.IsValidList(list.Id)
+	exists, err := lm.IsValidList(list.Address)
 	if err != nil {
 		t.Errorf("Checking exists failed with error: %s", err.Error())
 		return
@@ -73,57 +73,19 @@ func TestRemoveList(t *testing.T) {
 		t.Error("List failed IsValid after addition")
 	}
 
-	err = lm.Remove("test-list")
+	err = lm.Remove("test@example.com")
 	if err != nil {
 		t.Errorf("Removing failed with error: %s", err.Error())
 		return
 	}
 
-	exists, err = lm.IsValidList(list.Id)
+	exists, err = lm.IsValidList(list.Address)
 	if err != nil {
 		t.Errorf("Checking exists failed with error: %s", err.Error())
 		return
 	}
 	if exists {
 		t.Error("List passed IsValid after removal")
-	}
-}
-
-func TestFetchListIds(t *testing.T) {
-	lm := &MemoryListManager{}
-
-	listA := &List{Id: "list-a", Address: "list-a@example.com"}
-	listB := &List{Id: "list-b", Address: "list-b@example.com"}
-
-	err := lm.Add(listA)
-	if err != nil {
-		t.Errorf("Adding list A failed with error: %s", err.Error())
-		return
-	}
-
-	err = lm.Add(listB)
-	if err != nil {
-		t.Errorf("Adding list A failed with error: %s", err.Error())
-		return
-	}
-
-	ids, err := lm.FetchListIds()
-	if err != nil {
-		t.Errorf("Fetching list ids failed with error: %s", err.Error())
-		return
-	}
-
-	if len(ids) != 2 {
-		t.Errorf("Incorrect number of list ids returned: %d", len(ids))
-		return
-	}
-
-	if ids[0] != "list-a" {
-		t.Errorf("Incorrect first list id: %s", ids[0])
-	}
-
-	if ids[1] != "list-b" {
-		t.Errorf("Incorrect second list id: %s", ids[1])
 	}
 }
 

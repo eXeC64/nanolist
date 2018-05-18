@@ -120,12 +120,10 @@ func TestListsCommand(t *testing.T) {
 	pm.HandleMail(input)
 
 	// THEN
-	checkResponse(t, senderMock, "user@example.com", "Id: nomic\r\n"+
-		"Name: Nomic\r\n"+
+	checkResponse(t, senderMock, "user@example.com", "Name: Nomic\r\n"+
 		"Description: Lets play nomic\r\n"+
 		"Address: nomic-business@example.com\r\n"+
 		"\r\n"+
-		"Id: poker\r\n"+
 		"Name: Poker Discussion\r\n"+
 		"Description: All things poker\r\n"+
 		"Address: poker@example.com\r\n")
@@ -166,7 +164,7 @@ func TestSubscribeCommand(t *testing.T) {
 
 	input := strings.NewReader("To: test@example.com\r\n" +
 		"From: user@example.com\r\n" +
-		"Subject: subscribe nomic\r\n" +
+		"Subject: subscribe nomic-business@example.com\r\n" +
 		"\r\n\r\n")
 
 	// WHEN
@@ -182,8 +180,8 @@ func TestSubscribeCommand(t *testing.T) {
 		if args.String(0) != "user@example.com" {
 			t.Errorf("Incorrect email used in IsSubscribed call")
 		}
-		if args.String(1) != "nomic" {
-			t.Errorf("Incorrect list id used in IsSubscribed call")
+		if args.String(1) != "nomic-business@example.com" {
+			t.Errorf("Incorrect list address used in IsSubscribed call")
 		}
 
 		// Subscribe call
@@ -191,13 +189,13 @@ func TestSubscribeCommand(t *testing.T) {
 		if args.String(0) != "user@example.com" {
 			t.Errorf("Incorrect email used in Subscribe call")
 		}
-		if args.String(1) != "nomic" {
-			t.Errorf("Incorrect list id used in Subscribe call")
+		if args.String(1) != "nomic-business@example.com" {
+			t.Errorf("Incorrect list address used in Subscribe call")
 		}
 	}
 
 	// Send call
-	checkResponse(t, senderMock, "user@example.com", "You have been subscribed to nomic")
+	checkResponse(t, senderMock, "user@example.com", "You have been subscribed to nomic-business@example.com")
 }
 
 func TestUnsubscribeCommand(t *testing.T) {
@@ -235,7 +233,7 @@ func TestUnsubscribeCommand(t *testing.T) {
 
 	input := strings.NewReader("To: test@example.com\r\n" +
 		"From: user@example.com\r\n" +
-		"Subject: unsubscribe nomic\r\n" +
+		"Subject: unsubscribe nomic-business@example.com\r\n" +
 		"\r\n\r\n")
 
 	// WHEN
@@ -251,8 +249,8 @@ func TestUnsubscribeCommand(t *testing.T) {
 		if args.String(0) != "user@example.com" {
 			t.Errorf("Incorrect email used in IsSubscribed call")
 		}
-		if args.String(1) != "nomic" {
-			t.Errorf("Incorrect list id used in IsSubscribed call")
+		if args.String(1) != "nomic-business@example.com" {
+			t.Errorf("Incorrect list address used in IsSubscribed call")
 		}
 
 		// Unsubscribe call
@@ -260,11 +258,11 @@ func TestUnsubscribeCommand(t *testing.T) {
 		if args.String(0) != "user@example.com" {
 			t.Errorf("Incorrect email used in Unsubscribe call")
 		}
-		if args.String(1) != "nomic" {
-			t.Errorf("Incorrect list id used in Unsubscribe call")
+		if args.String(1) != "nomic-business@example.com" {
+			t.Errorf("Incorrect list address used in Unsubscribe call")
 		}
 	}
 
 	// Send call
-	checkResponse(t, senderMock, "user@example.com", "You have been unsubscribed from nomic")
+	checkResponse(t, senderMock, "user@example.com", "You have been unsubscribed from nomic-business@example.com")
 }

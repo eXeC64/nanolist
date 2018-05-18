@@ -8,7 +8,7 @@ import (
 func checkSubscribeUnsubscribe(t *testing.T, sm SubscriptionManager) {
 	const (
 		addr string = "test@example.com"
-		list string = "my-cool-list"
+		list string = "cool-list@example.com"
 	)
 
 	isSubscribed, err := sm.IsSubscribed(addr, list)
@@ -59,8 +59,8 @@ func checkUnsubscribeAll(t *testing.T, sm SubscriptionManager) {
 		addrA string = "arnold@example.com"
 		addrB string = "brook@example.com"
 		addrC string = "charlie@example.com"
-		listA string = "my-cool-list"
-		listB string = "my-other-list"
+		listA string = "cool-list@example.com"
+		listB string = "other-list@example.com"
 	)
 
 	subscriptions := []struct {
@@ -104,8 +104,8 @@ func checkFetchSubscribers(t *testing.T, sm SubscriptionManager) {
 		addrA string = "arnold@example.com"
 		addrB string = "brook@example.com"
 		addrC string = "charlie@example.com"
-		listA string = "my-cool-list"
-		listB string = "my-other-list"
+		listA string = "cool-list@example.com"
+		listB string = "other-list@example.com"
 	)
 
 	subscriptions := []struct {

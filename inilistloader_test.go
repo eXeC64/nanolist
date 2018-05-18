@@ -48,7 +48,7 @@ subscribers_only = true`)
 	}
 	t.Logf("Loaded the following lists: %v\n", ids)
 
-	golang, err := lm.FetchList("golang")
+	golang, err := lm.FetchList("golang@example.com")
 	if err != nil {
 		t.Errorf("Loading golang list failed with error: %s", err.Error())
 	} else {
@@ -83,7 +83,7 @@ subscribers_only = true`)
 		}
 	}
 
-	announcements, err := lm.FetchList("announcements")
+	announcements, err := lm.FetchList("announce@example.com")
 	if err != nil {
 		t.Errorf("Loading announcements list failed with error: %s", err.Error())
 	} else {
@@ -118,7 +118,7 @@ subscribers_only = true`)
 		}
 	}
 
-	fightclub, err := lm.FetchList("fight-club")
+	fightclub, err := lm.FetchList("robertpaulson99@example.com")
 	if err != nil {
 		t.Errorf("Loading fightclub list failed with error: %s", err.Error())
 	} else {

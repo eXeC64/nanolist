@@ -81,24 +81,24 @@ func (p *Postman) handleHelpCommand(msg *Message) {
 	p.sendReply(msg, `Available commands:
     help: Reply with this help information
     lists: Reply with list of available mailing lists
-    subscribe <list-id>: Subscribe to the given mailing list
-    unsubscribe <list-id>: Unsubscribe from the given mailing list`)
+    subscribe <list-address>: Subscribe to the given mailing list
+    unsubscribe <list-address>: Unsubscribe from the given mailing list`)
 }
 
 func (p *Postman) handleListsCommand(msg *Message) {
-	ids, err := p.Lists.FetchListIds()
+	addrs, err := p.Lists.FetchListAddresses()
 	if err != nil {
-		p.Log.Printf("Failed to fetch list ids: %q", err.Error())
+		p.Log.Printf("Failed to fetch list addresses: %q", err.Error())
 		p.sendReply(msg, errMsg)
 		return
 	}
 
-	sort.Strings(ids)
+	sort.Strings(addrs)
 	lists := []*List{}
-	for _, id := range ids {
-		list, err := p.Lists.FetchList(id)
+	for _, address := range addrs {
+		list, err := p.Lists.FetchList(address)
 		if err != nil {
-			p.Log.Printf("Failed to fetch list id %q: %q", id, err.Error())
+			p.Log.Printf("Failed to fetch list address %q: %q", address, err.Error())
 			p.sendReply(msg, errMsg)
 			return
 		}
@@ -110,16 +110,15 @@ func (p *Postman) handleListsCommand(msg *Message) {
 	for _, list := range lists {
 		if !list.Hidden {
 			fmt.Fprintf(&body,
-				"Id: %s\r\n"+
-					"Name: %s\r\n"+
+				"Name: %s\r\n"+
 					"Description: %s\r\n"+
 					"Address: %s\r\n\r\n",
-				list.Id, list.Name, list.Description, list.Address)
+				list.Name, list.Description, list.Address)
 		}
 	}
 
 	fmt.Fprintf(&body,
-		"\r\nTo subscribe to a mailing list, email %s with 'subscribe <list-id>' as the subject.\r\n",
+		"\r\nTo subscribe to a mailing list, email %s with 'subscribe <list-address>' as the subject.\r\n",
 		p.CommandAddress)
 
 	p.sendReply(msg, body.String())
@@ -127,15 +126,15 @@ func (p *Postman) handleListsCommand(msg *Message) {
 
 func (p *Postman) handleSubscribeCommand(msg *Message, args []string) {
 	if len(args) < 1 {
-		p.sendReply(msg, "No mailing list id specified. Unable to subscribe you.")
+		p.sendReply(msg, "No mailing list address specified. Unable to subscribe you.")
 		return
 	}
 
-	const noSuchList string = "No such list exists. Please check you entered its id correctly."
+	const noSuchList string = "No such list exists. Please check you entered its address correctly."
 
-	listId := args[0]
+	listAddr := args[0]
 
-	exists, err := p.Lists.IsValidList(listId)
+	exists, err := p.Lists.IsValidList(listAddr)
 	if err != nil {
 		p.sendReply(msg, errMsg)
 		return
@@ -145,36 +144,36 @@ func (p *Postman) handleSubscribeCommand(msg *Message, args []string) {
 		return
 	}
 
-	isSubscribed, err := p.Subscriptions.IsSubscribed(msg.From.Address, listId)
+	isSubscribed, err := p.Subscriptions.IsSubscribed(msg.From.Address, listAddr)
 	if err != nil {
 		p.sendReply(msg, errMsg)
 		return
 	}
 	if isSubscribed {
-		p.sendReply(msg, "You are already subscribed to "+listId)
+		p.sendReply(msg, "You are already subscribed to "+listAddr)
 		return
 	}
 
-	err = p.Subscriptions.Subscribe(msg.From.Address, listId)
+	err = p.Subscriptions.Subscribe(msg.From.Address, listAddr)
 	if err != nil {
 		p.sendReply(msg, errMsg)
 		return
 	}
 
-	p.sendReply(msg, "You have been subscribed to "+listId)
+	p.sendReply(msg, "You have been subscribed to "+listAddr)
 }
 
 func (p *Postman) handleUnsubscribeCommand(msg *Message, args []string) {
 	if len(args) < 1 {
-		p.sendReply(msg, "No mailing list id specified. Unable to unsubscribe you.")
+		p.sendReply(msg, "No mailing list address specified. Unable to unsubscribe you.")
 		return
 	}
 
-	const noSuchList string = "No such list exists. Please check you entered its id correctly."
+	const noSuchList string = "No such list exists. Please check you entered its address correctly."
 
-	listId := args[0]
+	listAddr := args[0]
 
-	exists, err := p.Lists.IsValidList(listId)
+	exists, err := p.Lists.IsValidList(listAddr)
 	if err != nil {
 		p.sendReply(msg, errMsg)
 		return
@@ -184,21 +183,21 @@ func (p *Postman) handleUnsubscribeCommand(msg *Message, args []string) {
 		return
 	}
 
-	isSubscribed, err := p.Subscriptions.IsSubscribed(msg.From.Address, listId)
+	isSubscribed, err := p.Subscriptions.IsSubscribed(msg.From.Address, listAddr)
 	if err != nil {
 		p.sendReply(msg, errMsg)
 		return
 	}
 	if !isSubscribed {
-		p.sendReply(msg, "You are not subscribed to "+listId)
+		p.sendReply(msg, "You are not subscribed to "+listAddr)
 		return
 	}
 
-	err = p.Subscriptions.Unsubscribe(msg.From.Address, listId)
+	err = p.Subscriptions.Unsubscribe(msg.From.Address, listAddr)
 	if err != nil {
 		p.sendReply(msg, errMsg)
 		return
 	}
 
-	p.sendReply(msg, "You have been unsubscribed from "+listId)
+	p.sendReply(msg, "You have been unsubscribed from "+listAddr)
 }
