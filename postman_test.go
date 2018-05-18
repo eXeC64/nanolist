@@ -82,14 +82,12 @@ func TestListsCommand(t *testing.T) {
 	listManager.Add(&List{
 		Name:        "Poker Discussion",
 		Description: "All things poker",
-		Id:          "poker",
 		Address:     "poker@example.com",
 	})
 
 	listManager.Add(&List{
 		Name:        "Secret Chat",
 		Description: "Sssh",
-		Id:          "secret",
 		Address:     "secret@example.com",
 		Hidden:      true,
 	})
@@ -97,7 +95,6 @@ func TestListsCommand(t *testing.T) {
 	listManager.Add(&List{
 		Name:        "Nomic",
 		Description: "Lets play nomic",
-		Id:          "nomic",
 		Address:     "nomic-business@example.com",
 	})
 
@@ -139,14 +136,12 @@ func TestSubscribeCommand(t *testing.T) {
 	listManager.Add(&List{
 		Name:        "Poker Discussion",
 		Description: "All things poker",
-		Id:          "poker",
 		Address:     "poker@example.com",
 	})
 
 	listManager.Add(&List{
 		Name:        "Nomic",
 		Description: "Lets play nomic",
-		Id:          "nomic",
 		Address:     "nomic-business@example.com",
 	})
 
@@ -208,14 +203,12 @@ func TestUnsubscribeCommand(t *testing.T) {
 	listManager.Add(&List{
 		Name:        "Poker Discussion",
 		Description: "All things poker",
-		Id:          "poker",
 		Address:     "poker@example.com",
 	})
 
 	listManager.Add(&List{
 		Name:        "Nomic",
 		Description: "Lets play nomic",
-		Id:          "nomic",
 		Address:     "nomic-business@example.com",
 	})
 

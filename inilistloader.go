@@ -5,7 +5,6 @@ import (
 	"gopkg.in/ini.v1"
 	"io"
 	"io/ioutil"
-	"strings"
 )
 
 type INIListLoader struct {
@@ -32,7 +31,6 @@ func (ll *INIListLoader) LoadLists(lm ListManager) error {
 
 		list.Name = section.Key("name").String()
 		list.Description = section.Key("description").String()
-		list.Id = strings.TrimPrefix(section.Name(), "list.")
 		list.Address = section.Key("address").String()
 		list.Hidden = section.Key("hidden").MustBool(false)
 		list.SubscribersOnly = section.Key("subscribers_only").MustBool(false)

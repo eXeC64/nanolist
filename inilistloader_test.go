@@ -53,9 +53,6 @@ subscribers_only = true`)
 		t.Errorf("Loading golang list failed with error: %s", err.Error())
 	} else {
 		// Inspect golang list
-		if golang.Id != "golang" {
-			t.Errorf("Incorrect golang id: %s", golang.Id)
-		}
 		if golang.Address != "golang@example.com" {
 			t.Errorf("Incorrect golang address: %s", golang.Address)
 		}
@@ -88,9 +85,6 @@ subscribers_only = true`)
 		t.Errorf("Loading announcements list failed with error: %s", err.Error())
 	} else {
 		// Inspect announcements list
-		if announcements.Id != "announcements" {
-			t.Errorf("Incorrect announcements id: %s", announcements.Id)
-		}
 		if announcements.Address != "announce@example.com" {
 			t.Errorf("Incorrect announcements address: %s", announcements.Address)
 		}
@@ -123,9 +117,6 @@ subscribers_only = true`)
 		t.Errorf("Loading fightclub list failed with error: %s", err.Error())
 	} else {
 		// Inspect fightclub list
-		if fightclub.Id != "fight-club" {
-			t.Errorf("Incorrect fight-club id: %s", fightclub.Id)
-		}
 		if fightclub.Address != "robertpaulson99@example.com" {
 			t.Errorf("Incorrect fightclub address: %s", fightclub.Address)
 		}

@@ -10,7 +10,6 @@ func TestAddAndFetchList(t *testing.T) {
 	list := &List{
 		Name:            "Test List",
 		Description:     "A test list",
-		Id:              "test-list",
 		Address:         "test@example.com",
 		Hidden:          true,
 		SubscribersOnly: true,
@@ -50,7 +49,6 @@ func TestRemoveList(t *testing.T) {
 	list := &List{
 		Name:            "Test List",
 		Description:     "A test list",
-		Id:              "test-list",
 		Address:         "test@example.com",
 		Hidden:          true,
 		SubscribersOnly: true,
@@ -92,8 +90,8 @@ func TestRemoveList(t *testing.T) {
 func TestFetchListAddresses(t *testing.T) {
 	lm := &MemoryListManager{}
 
-	listA := &List{Id: "list-a", Address: "list-a@example.com"}
-	listB := &List{Id: "list-b", Address: "list-b@example.com"}
+	listA := &List{Address: "list-a@example.com"}
+	listB := &List{Address: "list-b@example.com"}
 
 	err := lm.Add(listA)
 	if err != nil {
