@@ -15,6 +15,36 @@ func (w *NullWriter) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
+func checkResponse(t *testing.T, sender *MockSender, to string, body string) {
+
+	if len(sender.Calls) < 1 {
+		t.Errorf("Send not called")
+	} else {
+
+		args := sender.Calls[0].Arguments
+
+		recipients := args.Get(1).([]string)
+		if len(recipients) != 1 {
+			t.Errorf("Wrong number of recipients: %d", len(recipients))
+		} else {
+			addr := recipients[0]
+			if addr != to {
+				t.Errorf("Wrong recipient: %q Expcted: %q", addr, to)
+			}
+		}
+
+		msg := args.Get(0).(*Message)
+
+		if !strings.Contains(msg.Body, body) {
+			t.Errorf("Response body did not match expectations. Body: %q Expected: %q", msg.Body, body)
+		}
+
+		if msg.To[0].Address != to {
+			t.Errorf("Response To address was incorrect: To: %q Expected: %q", msg.To[0].Address, to)
+		}
+	}
+}
+
 func TestHelpCommand(t *testing.T) {
 
 	// GIVEN
@@ -39,33 +69,7 @@ func TestHelpCommand(t *testing.T) {
 	// WHEN
 	pm.HandleMail(input)
 
-	// THEN
-	if len(senderMock.Calls) < 1 {
-		t.Errorf("Send not called")
-		return
-	}
-
-	args := senderMock.Calls[0].Arguments
-
-	recipients := args.Get(1).([]string)
-	if len(recipients) != 1 {
-		t.Errorf("Wrong number of recipients: %d", len(recipients))
-	} else {
-		addr := recipients[0]
-		if addr != "user@example.com" {
-			t.Errorf("Wrong recipient: %s", addr)
-		}
-	}
-
-	msg := args.Get(0).(*Message)
-
-	if !strings.Contains(msg.Body, "help: Reply with this help information") {
-		t.Errorf("Response body did not contain expected help information: %q", msg.Body)
-	}
-
-	if msg.To[0].Address != "user@example.com" {
-		t.Errorf("Response To address was incorrect: %q", msg.To[0].Address)
-	}
+	checkResponse(t, senderMock, "user@example.com", "help: Reply with this help information")
 }
 
 func TestListsCommand(t *testing.T) {
@@ -116,43 +120,13 @@ func TestListsCommand(t *testing.T) {
 	pm.HandleMail(input)
 
 	// THEN
-	if len(senderMock.Calls) < 1 {
-		t.Errorf("Send not called")
-		return
-	}
-
-	args := senderMock.Calls[0].Arguments
-
-	recipients := args.Get(1).([]string)
-	if len(recipients) != 1 {
-		t.Errorf("Wrong number of recipients: %d", len(recipients))
-	} else {
-		addr := recipients[0]
-		if addr != "user@example.com" {
-			t.Errorf("Wrong recipient: %s", addr)
-		}
-	}
-
-	msg := args.Get(0).(*Message)
-
-	if !strings.Contains(msg.Body,
-		"Id: nomic\r\n"+
-			"Name: Nomic\r\n"+
-			"Description: Lets play nomic\r\n"+
-			"Address: nomic-business@example.com\r\n"+
-			"\r\n"+
-			"Id: poker\r\n"+
-			"Name: Poker Discussion\r\n"+
-			"Description: All things poker\r\n"+
-			"Address: poker@example.com\r\n") {
-		t.Errorf("Response body did not contain expected lists: %q", msg.Body)
-	}
-
-	if strings.Contains(msg.Body, "secret") {
-		t.Errorf("Response body contained secret chat: %q", msg.Body)
-	}
-
-	if msg.To[0].Address != "user@example.com" {
-		t.Errorf("Response To address was incorrect: %q", msg.To[0].Address)
-	}
+	checkResponse(t, senderMock, "user@example.com", "Id: nomic\r\n"+
+		"Name: Nomic\r\n"+
+		"Description: Lets play nomic\r\n"+
+		"Address: nomic-business@example.com\r\n"+
+		"\r\n"+
+		"Id: poker\r\n"+
+		"Name: Poker Discussion\r\n"+
+		"Description: All things poker\r\n"+
+		"Address: poker@example.com\r\n")
 }
