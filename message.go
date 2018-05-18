@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/mail"
+	"sort"
 	"strings"
 	"time"
 )
@@ -103,4 +104,31 @@ func (msg *Message) Reply() *Message {
 		Date:      time.Now(),
 		InReplyTo: msg.Id,
 	}
+}
+
+func (msg *Message) AllRecipients() []*mail.Address {
+	addrs := []*mail.Address{}
+
+	for _, to := range msg.To {
+		addrs = append(addrs, to)
+	}
+	for _, cc := range msg.Cc {
+		addrs = append(addrs, cc)
+	}
+	for _, bcc := range msg.Bcc {
+		addrs = append(addrs, bcc)
+	}
+
+	sort.Slice(addrs, func(i, j int) bool {
+		return addrs[i].Address < addrs[j].Address
+	})
+
+	// Remove duplicates, going back to front
+	for i := len(addrs) - 1; i > 0; i-- {
+		if addrs[i].Address == addrs[i-1].Address {
+			addrs = append(addrs[:i], addrs[i+1:]...)
+		}
+	}
+
+	return addrs
 }

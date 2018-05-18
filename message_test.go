@@ -217,3 +217,35 @@ func TestReply(t *testing.T) {
 		t.Errorf("Incorrect InReplyTo: %q", reply.InReplyTo)
 	}
 }
+
+func TestAllRecipients(t *testing.T) {
+	msg := &Message{
+		To:  []*mail.Address{{"Charlie", "charlie@example.com"}, {"Dolores", "dolores@example.com"}},
+		Cc:  []*mail.Address{{"Charles", "charlie@example.com"}, {"Bob", "bob@example.com"}},
+		Bcc: []*mail.Address{{"Evan", "evan@example.com"}, {"Francis", "francis@example.com"}},
+	}
+
+	fullAddrs := msg.AllRecipients()
+	addrs := []string{}
+	for _, addr := range fullAddrs {
+		addrs = append(addrs, addr.Address)
+	}
+
+	expected := []string{"bob@example.com",
+		"charlie@example.com",
+		"dolores@example.com",
+		"evan@example.com",
+		"francis@example.com",
+	}
+
+	if len(expected) != len(addrs) {
+		t.Errorf("Incorrect number of addresses: %d", len(addrs))
+		return
+	}
+
+	for i := range addrs {
+		if addrs[i] != expected[i] {
+			t.Errorf("Incorrect address: %q != %q", addrs[i], expected[i])
+		}
+	}
+}
