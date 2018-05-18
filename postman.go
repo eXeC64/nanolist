@@ -43,8 +43,25 @@ func (p *Postman) HandleMail(input io.Reader) {
 		return
 	}
 
-	// Find out if it's for any mailing lists
-	// TODO
+	// Find out if it's for any of our mailing lists
+	recipients := AddressesOnly(msg.AllRecipients())
+	allLists, err := p.Lists.FetchListAddresses()
+	if err != nil {
+		p.Log.Printf("Failed to fetch list addresses: %q", err.Error())
+		p.sendReply(msg, errMsg)
+		return
+	}
+
+	// Both lists are sorted, so get the intersection of them to find the lists
+	// we need to send to.
+	toLists := IntersectionOf(recipients, allLists)
+
+	for _, list := range toLists {
+		p.sendToList(msg, list)
+	}
+}
+
+func (p *Postman) sendToList(msg *Message, list string) {
 }
 
 func (p *Postman) sendReply(msg *Message, response string) {

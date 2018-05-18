@@ -225,11 +225,7 @@ func TestAllRecipients(t *testing.T) {
 		Bcc: []*mail.Address{{"Evan", "evan@example.com"}, {"Francis", "francis@example.com"}},
 	}
 
-	fullAddrs := msg.AllRecipients()
-	addrs := []string{}
-	for _, addr := range fullAddrs {
-		addrs = append(addrs, addr.Address)
-	}
+	addrs := AddressesOnly(msg.AllRecipients())
 
 	expected := []string{"bob@example.com",
 		"charlie@example.com",
