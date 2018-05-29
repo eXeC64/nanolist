@@ -331,3 +331,58 @@ func TestRelayMessage(t *testing.T) {
 		}
 	}
 }
+
+func TestDontRelaySubscribersOnlyMessage(t *testing.T) {
+	// GIVEN
+	senderMock := &MockSender{}
+	subManagerMock := &MockSubscriptionManager{}
+	listManager := &MemoryListManager{}
+
+	listManager.Add(&List{
+		Name:            "Poker Discussion",
+		Description:     "All things poker",
+		Address:         "poker@example.com",
+		SubscribersOnly: true,
+	})
+
+	listManager.Add(&List{
+		Name:        "Nomic",
+		Description: "Lets play nomic",
+		Address:     "nomic-business@example.com",
+	})
+
+	pm := &Postman{
+		CommandAddress: "test@example.com",
+		Log:            log.New(&NullWriter{}, "", 0),
+		Sender:         senderMock,
+		Subscriptions:  subManagerMock,
+		Lists:          listManager,
+	}
+
+	subs := []string{
+		"user@example.com",
+		"admin@example.com",
+	}
+
+	subManagerMock.On("FetchSubscribers", "poker@example.com").Return(subs, nil).Once()
+	subManagerMock.On("IsSubscribed", "spammer@example.com", "poker@example.com").Return(false, nil).Once()
+	senderMock.On("Send", mock.Anything, mock.Anything).Return(nil).Once()
+
+	input := strings.NewReader("To: poker@example.com\r\n" +
+		"From: spammer@example.com\r\n" +
+		"Subject: example message\r\n" +
+		"To: poker@example.com\r\n" +
+		"\r\n" +
+		"Hello, this is my message." +
+		"\r\n")
+
+	// WHEN
+	pm.HandleMail(input)
+
+	// THEN
+	if len(subManagerMock.Calls) < 1 {
+		t.Errorf("FetchSubscribers not called")
+	}
+
+	checkResponse(t, senderMock, "spammer@example.com", "Only subscribers may post to poker@example.com")
+}

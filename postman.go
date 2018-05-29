@@ -57,8 +57,30 @@ func (p *Postman) HandleMail(input io.Reader) {
 	// we need to send to.
 	toLists := IntersectionOf(recipients, allLists)
 
-	for _, list := range toLists {
-		p.sendToList(msg, list)
+	for _, listAddr := range toLists {
+		list, err := p.Lists.FetchList(listAddr)
+		if err != nil {
+			p.Log.Printf("Failed to fetch list: %q", err.Error())
+			p.sendReply(msg, errMsg)
+			return
+		}
+
+		// If this is a subscribers-only list, check the sender is subscribed
+		if list.SubscribersOnly {
+			isSubscribed, err := p.Subscriptions.IsSubscribed(msg.From.Address, list.Address)
+			if err != nil {
+				p.Log.Printf("Failed to determine if user is subscribed: %q", err.Error())
+				p.sendReply(msg, errMsg)
+				return
+			}
+
+			if !isSubscribed {
+				p.sendReply(msg, "Only subscribers may post to "+list.Address)
+				return
+			}
+		}
+
+		p.sendToList(msg, listAddr)
 	}
 }
 
