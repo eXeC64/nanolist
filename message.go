@@ -45,15 +45,16 @@ func ParseMessage(input io.Reader) (*Message, error) {
 	bcc, _ := inMessage.Header.AddressList("Bcc")
 
 	msg := &Message{
-		Subject:   inMessage.Header.Get("Subject"),
-		From:      from,
-		Id:        inMessage.Header.Get("Message-ID"),
-		InReplyTo: inMessage.Header.Get("In-Reply-To"),
-		Body:      string(body[:]),
-		To:        to,
-		Cc:        cc,
-		Bcc:       bcc,
-		Date:      date,
+		Subject:     inMessage.Header.Get("Subject"),
+		From:        from,
+		Id:          inMessage.Header.Get("Message-ID"),
+		InReplyTo:   inMessage.Header.Get("In-Reply-To"),
+		ContentType: inMessage.Header.Get("Content-Type"),
+		Body:        string(body[:]),
+		To:          to,
+		Cc:          cc,
+		Bcc:         bcc,
+		Date:        date,
 	}
 
 	return msg, nil

@@ -17,6 +17,7 @@ func TestParseMessage(t *testing.T) {
 		"Date: Mon, 14 May 2018 19:41:34 +0200\r\n" +
 		"Message-ID: test-msg-id@example.com\r\n" +
 		"In-Reply-To: other-msg-id@example.com\r\n" +
+		"Content-Type: text/plain\r\n" +
 		"\r\n" +
 		"This is my body\nIt even has multiple lines.")
 
@@ -109,6 +110,10 @@ func TestParseMessage(t *testing.T) {
 		t.Errorf("In-Reply-To parsed incorrectly")
 	}
 
+	if msg.ContentType != "text/plain" {
+		t.Errorf("Content-Type parsed incorrectly")
+	}
+
 	if msg.Body != "This is my body\nIt even has multiple lines." {
 		t.Error("Body parsed incorrectly")
 	}
@@ -158,15 +163,16 @@ func TestParseSlimMessage(t *testing.T) {
 
 func TestStringMessage(t *testing.T) {
 	msg := &Message{
-		Subject:   "Just a test subject",
-		From:      &mail.Address{Name: "James Bond", Address: "bond@example.com"},
-		Id:        "test-id@example.com",
-		InReplyTo: "other-test-id@example.com",
-		Body:      "This is my test body\nIt contains multiple lines!",
-		To:        []*mail.Address{{"Alice", "alice@example.com"}, {"Bob", "bob@example.com"}},
-		Cc:        []*mail.Address{{"Charlie", "charlie@example.com"}, {"Dolores", "dolores@example.com"}},
-		Bcc:       []*mail.Address{{"Evan", "evan@example.com"}, {"Francis", "francis@example.com"}},
-		Date:      time.Date(2018, time.May, 14, 19, 41, 34, 0, time.FixedZone("ABC", 2*60*60)),
+		Subject:     "Just a test subject",
+		From:        &mail.Address{Name: "James Bond", Address: "bond@example.com"},
+		Id:          "test-id@example.com",
+		InReplyTo:   "other-test-id@example.com",
+		ContentType: "text/plain",
+		Body:        "This is my test body\nIt contains multiple lines!",
+		To:          []*mail.Address{{"Alice", "alice@example.com"}, {"Bob", "bob@example.com"}},
+		Cc:          []*mail.Address{{"Charlie", "charlie@example.com"}, {"Dolores", "dolores@example.com"}},
+		Bcc:         []*mail.Address{{"Evan", "evan@example.com"}, {"Francis", "francis@example.com"}},
+		Date:        time.Date(2018, time.May, 14, 19, 41, 34, 0, time.FixedZone("ABC", 2*60*60)),
 	}
 
 	str := msg.String()
@@ -178,6 +184,7 @@ func TestStringMessage(t *testing.T) {
 		"Date: Mon, 14 May 2018 19:41:34 +0200\r\n" +
 		"Message-ID: test-id@example.com\r\n" +
 		"In-Reply-To: other-test-id@example.com\r\n" +
+		"Content-Type: text/plain\r\n" +
 		"Subject: Just a test subject\r\n" +
 		"\r\n" +
 		"This is my test body\nIt contains multiple lines!"
