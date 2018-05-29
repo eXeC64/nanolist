@@ -65,8 +65,21 @@ func (p *Postman) HandleMail(input io.Reader) {
 			return
 		}
 
-		// If this is a subscribers-only list, check the sender is subscribed
-		if list.SubscribersOnly {
+		// If there's a whitelist of posters, check the sender is on it
+		if len(list.Posters) > 0 {
+			isPoster := false
+			for _, poster := range list.Posters {
+				if msg.From.Address == poster {
+					isPoster = true
+					break
+				}
+			}
+			if !isPoster {
+				p.sendReply(msg, "You are not permitted to post to "+list.Address)
+				return
+			}
+		} else if list.SubscribersOnly {
+			// If this is a subscribers-only list, check the sender is subscribed
 			isSubscribed, err := p.Subscriptions.IsSubscribed(msg.From.Address, list.Address)
 			if err != nil {
 				p.Log.Printf("Failed to determine if user is subscribed: %q", err.Error())

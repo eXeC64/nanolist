@@ -386,3 +386,47 @@ func TestDontRelaySubscribersOnlyMessage(t *testing.T) {
 
 	checkResponse(t, senderMock, "spammer@example.com", "Only subscribers may post to poker@example.com")
 }
+
+func TestDontRelayPostersOnlyMessage(t *testing.T) {
+	// GIVEN
+	senderMock := &MockSender{}
+	subManagerMock := &MockSubscriptionManager{}
+	listManager := &MemoryListManager{}
+
+	listManager.Add(&List{
+		Name:        "Poker Discussion",
+		Description: "All things poker",
+		Address:     "poker@example.com",
+		Posters:     []string{"admin@example.com"},
+	})
+
+	listManager.Add(&List{
+		Name:        "Nomic",
+		Description: "Lets play nomic",
+		Address:     "nomic-business@example.com",
+	})
+
+	pm := &Postman{
+		CommandAddress: "test@example.com",
+		Log:            log.New(&NullWriter{}, "", 0),
+		Sender:         senderMock,
+		Subscriptions:  subManagerMock,
+		Lists:          listManager,
+	}
+
+	senderMock.On("Send", mock.Anything, mock.Anything).Return(nil).Once()
+
+	input := strings.NewReader("To: poker@example.com\r\n" +
+		"From: spammer@example.com\r\n" +
+		"Subject: example message\r\n" +
+		"To: poker@example.com\r\n" +
+		"\r\n" +
+		"Hello, this is my message." +
+		"\r\n")
+
+	// WHEN
+	pm.HandleMail(input)
+
+	// THEN
+	checkResponse(t, senderMock, "spammer@example.com", "You are not permitted to post to poker@example.com")
+}
