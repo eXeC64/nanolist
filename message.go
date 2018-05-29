@@ -107,6 +107,31 @@ func (msg *Message) Reply() *Message {
 	}
 }
 
+func (msg *Message) RelayVia(listAddress string) *Message {
+	send := &Message{
+		Subject:     msg.Subject,
+		From:        msg.From,
+		To:          msg.To,
+		Cc:          msg.Cc,
+		Date:        msg.Date,
+		Id:          msg.Id,
+		InReplyTo:   msg.InReplyTo,
+		ContentType: msg.ContentType,
+		XList:       listAddress,
+		Body:        msg.Body,
+	}
+
+	// If the mailing list was in the Bcc field, preserve it
+	for _, bcc := range msg.Bcc {
+		if bcc.Address == listAddress {
+			send.Bcc = append(send.Bcc, bcc)
+			break
+		}
+	}
+
+	return send
+}
+
 func (msg *Message) AllRecipients() []*mail.Address {
 	addrs := []*mail.Address{}
 

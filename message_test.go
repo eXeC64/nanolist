@@ -233,3 +233,36 @@ func TestAllRecipients(t *testing.T) {
 		}
 	}
 }
+
+func TestRelay(t *testing.T) {
+	msg := &Message{
+		Subject:     "Just a test subject",
+		From:        &mail.Address{Name: "James Bond", Address: "bond@example.com"},
+		Id:          "test-id@example.com",
+		InReplyTo:   "other-test-id@example.com",
+		ContentType: "text/plain",
+		Body:        "This is my test body\nIt contains multiple lines!",
+		To:          []*mail.Address{{"Alice", "alice@example.com"}, {"Bob", "bob@example.com"}},
+		Cc:          []*mail.Address{{"Charlie", "charlie@example.com"}, {"Dolores", "dolores@example.com"}},
+		Bcc:         []*mail.Address{{"Evan", "evan@example.com"}, {"List", "list@example.com"}, {"Francis", "francis@example.com"}},
+		Date:        time.Date(2018, time.May, 14, 19, 41, 34, 0, time.FixedZone("ABC", 2*60*60)),
+	}
+
+	expected := &Message{
+		Subject:     msg.Subject,
+		From:        msg.From,
+		Id:          msg.Id,
+		InReplyTo:   msg.InReplyTo,
+		ContentType: msg.ContentType,
+		Body:        msg.Body,
+		To:          msg.To,
+		Cc:          msg.Cc,
+		Bcc:         []*mail.Address{{"List", "list@example.com"}},
+		Date:        msg.Date,
+		XList:       "list@example.com",
+	}
+
+	actual := msg.RelayVia("list@example.com")
+
+	checkMessage(expected, actual, t)
+}
