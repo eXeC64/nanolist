@@ -63,6 +63,18 @@ func (p *Postman) HandleMail(input io.Reader) {
 }
 
 func (p *Postman) sendToList(msg *Message, list string) {
+	// Construct a version of the message to relay to subscribers of this list
+	listMsg := msg.RelayVia(list)
+
+	// Fetch the subscribers of this list
+	recipients, err := p.Subscriptions.FetchSubscribers(list)
+	if err != nil {
+		p.Log.Printf("Failed to fetch subscribers: %q", err.Error())
+		return
+	}
+
+	// Relay the message
+	p.Sender.Send(listMsg, recipients)
 }
 
 func (p *Postman) sendReply(msg *Message, response string) {

@@ -259,3 +259,78 @@ func TestUnsubscribeCommand(t *testing.T) {
 	// Send call
 	checkResponse(t, senderMock, "user@example.com", "You have been unsubscribed from nomic-business@example.com")
 }
+
+func TestRelayMessage(t *testing.T) {
+	// GIVEN
+	senderMock := &MockSender{}
+	subManagerMock := &MockSubscriptionManager{}
+	listManager := &MemoryListManager{}
+
+	listManager.Add(&List{
+		Name:        "Poker Discussion",
+		Description: "All things poker",
+		Address:     "poker@example.com",
+	})
+
+	listManager.Add(&List{
+		Name:        "Nomic",
+		Description: "Lets play nomic",
+		Address:     "nomic-business@example.com",
+	})
+
+	pm := &Postman{
+		CommandAddress: "test@example.com",
+		Log:            log.New(&NullWriter{}, "", 0),
+		Sender:         senderMock,
+		Subscriptions:  subManagerMock,
+		Lists:          listManager,
+	}
+
+	subs := []string{
+		"user@example.com",
+		"admin@example.com",
+	}
+
+	subManagerMock.On("FetchSubscribers", "poker@example.com").Return(subs, nil).Once()
+	senderMock.On("Send", mock.Anything, subs).Return(nil).Once()
+
+	input := strings.NewReader("To: poker@example.com\r\n" +
+		"From: user@example.com\r\n" +
+		"Subject: example message\r\n" +
+		"To: poker@example.com\r\n" +
+		"\r\n" +
+		"Hello, this is my message." +
+		"\r\n")
+
+	// WHEN
+	pm.HandleMail(input)
+
+	// THEN
+	if len(subManagerMock.Calls) < 1 {
+		t.Errorf("FetchSubscribers not called")
+	}
+
+	if len(senderMock.Calls) < 1 {
+		t.Errorf("Send not called")
+	} else {
+		// Check Send call
+		msg := senderMock.Calls[0].Arguments.Get(0).(*Message)
+		actual := msg.String()
+		expected := "From: <user@example.com>\r\n" +
+			"To: <poker@example.com>\r\n" +
+			"Cc: \r\n" +
+			"Bcc: \r\n" +
+			"In-Reply-To: \r\n" +
+			"X-Mailing-List: poker@example.com\r\n" +
+			"List-ID: poker@example.com\r\n" +
+			"Sender: poker@example.com\r\n" +
+			"Subject: example message\r\n" +
+			"\r\n" +
+			"Hello, this is my message." +
+			"\r\n"
+
+		if expected != actual {
+			t.Errorf("Expected message != actual message.\nExpected:\n%q\nActual:\n%q", expected, actual)
+		}
+	}
+}
