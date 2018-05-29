@@ -297,7 +297,6 @@ func TestRelayMessage(t *testing.T) {
 	input := strings.NewReader("To: poker@example.com\r\n" +
 		"From: user@example.com\r\n" +
 		"Subject: example message\r\n" +
-		"To: poker@example.com\r\n" +
 		"\r\n" +
 		"Hello, this is my message." +
 		"\r\n")
@@ -371,7 +370,6 @@ func TestDontRelaySubscribersOnlyMessage(t *testing.T) {
 	input := strings.NewReader("To: poker@example.com\r\n" +
 		"From: spammer@example.com\r\n" +
 		"Subject: example message\r\n" +
-		"To: poker@example.com\r\n" +
 		"\r\n" +
 		"Hello, this is my message." +
 		"\r\n")
@@ -419,7 +417,6 @@ func TestDontRelayPostersOnlyMessage(t *testing.T) {
 	input := strings.NewReader("To: poker@example.com\r\n" +
 		"From: spammer@example.com\r\n" +
 		"Subject: example message\r\n" +
-		"To: poker@example.com\r\n" +
 		"\r\n" +
 		"Hello, this is my message." +
 		"\r\n")
@@ -470,7 +467,6 @@ func TestRelayMessageToListBccs(t *testing.T) {
 	input := strings.NewReader("To: poker@example.com\r\n" +
 		"From: user@example.com\r\n" +
 		"Subject: example message\r\n" +
-		"To: poker@example.com\r\n" +
 		"\r\n" +
 		"Hello, this is my message." +
 		"\r\n")
@@ -507,7 +503,6 @@ func TestRelayNowhereErrors(t *testing.T) {
 	input := strings.NewReader("To: poker@example.com\r\n" +
 		"From: user@example.com\r\n" +
 		"Subject: example message\r\n" +
-		"To: poker@example.com\r\n" +
 		"\r\n" +
 		"Hello, this is my message." +
 		"\r\n")
