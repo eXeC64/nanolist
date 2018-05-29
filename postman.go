@@ -57,6 +57,11 @@ func (p *Postman) HandleMail(input io.Reader) {
 	// we need to send to.
 	toLists := IntersectionOf(recipients, allLists)
 
+	if len(toLists) == 0 {
+		p.sendReply(msg, "No mailing lists addressed. Your message has not been delivered.")
+		return
+	}
+
 	for _, listAddr := range toLists {
 		list, err := p.Lists.FetchList(listAddr)
 		if err != nil {

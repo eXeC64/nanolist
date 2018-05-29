@@ -487,3 +487,34 @@ func TestRelayMessageToListBccs(t *testing.T) {
 		t.Errorf("Send not called")
 	}
 }
+
+func TestRelayNowhereErrors(t *testing.T) {
+	// GIVEN
+	senderMock := &MockSender{}
+	subManagerMock := &MockSubscriptionManager{}
+	listManager := &MemoryListManager{}
+
+	pm := &Postman{
+		CommandAddress: "test@example.com",
+		Log:            log.New(&NullWriter{}, "", 0),
+		Sender:         senderMock,
+		Subscriptions:  subManagerMock,
+		Lists:          listManager,
+	}
+
+	senderMock.On("Send", mock.Anything, mock.Anything).Return(nil).Once()
+
+	input := strings.NewReader("To: poker@example.com\r\n" +
+		"From: user@example.com\r\n" +
+		"Subject: example message\r\n" +
+		"To: poker@example.com\r\n" +
+		"\r\n" +
+		"Hello, this is my message." +
+		"\r\n")
+
+	// WHEN
+	pm.HandleMail(input)
+
+	// THEN
+	checkResponse(t, senderMock, "user@example.com", "No mailing lists addressed. Your message has not been delivered.")
+}
