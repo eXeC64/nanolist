@@ -318,9 +318,6 @@ func TestRelayMessage(t *testing.T) {
 		actual := msg.String()
 		expected := "From: <user@example.com>\r\n" +
 			"To: <poker@example.com>\r\n" +
-			"Cc: \r\n" +
-			"Bcc: \r\n" +
-			"In-Reply-To: \r\n" +
 			"X-Mailing-List: poker@example.com\r\n" +
 			"List-ID: poker@example.com\r\n" +
 			"Sender: poker@example.com\r\n" +

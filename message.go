@@ -74,16 +74,24 @@ func (msg *Message) String() string {
 	var buf bytes.Buffer
 
 	fmt.Fprintf(&buf, "From: %s\r\n", msg.From)
-	fmt.Fprintf(&buf, "To: %s\r\n", formatAddressList(msg.To))
-	fmt.Fprintf(&buf, "Cc: %s\r\n", formatAddressList(msg.Cc))
-	fmt.Fprintf(&buf, "Bcc: %s\r\n", formatAddressList(msg.Bcc))
+	if len(msg.To) > 0 {
+		fmt.Fprintf(&buf, "To: %s\r\n", formatAddressList(msg.To))
+	}
+	if len(msg.Cc) > 0 {
+		fmt.Fprintf(&buf, "Cc: %s\r\n", formatAddressList(msg.Cc))
+	}
+	if len(msg.Bcc) > 0 {
+		fmt.Fprintf(&buf, "Bcc: %s\r\n", formatAddressList(msg.Bcc))
+	}
 	if !msg.Date.IsZero() {
 		fmt.Fprintf(&buf, "Date: %s\r\n", msg.Date.Format("Mon, 2 Jan 2006 15:04:05 -0700"))
 	}
 	if len(msg.Id) > 0 {
 		fmt.Fprintf(&buf, "Message-ID: %s\r\n", msg.Id)
 	}
-	fmt.Fprintf(&buf, "In-Reply-To: %s\r\n", msg.InReplyTo)
+	if len(msg.InReplyTo) > 0 {
+		fmt.Fprintf(&buf, "In-Reply-To: %s\r\n", msg.InReplyTo)
+	}
 	if len(msg.XList) > 0 {
 		fmt.Fprintf(&buf, "X-Mailing-List: %s\r\n", msg.XList)
 		fmt.Fprintf(&buf, "List-ID: %s\r\n", msg.XList)
@@ -92,7 +100,9 @@ func (msg *Message) String() string {
 	if len(msg.ContentType) > 0 {
 		fmt.Fprintf(&buf, "Content-Type: %s\r\n", msg.ContentType)
 	}
-	fmt.Fprintf(&buf, "Subject: %s\r\n", msg.Subject)
+	if len(msg.Subject) > 0 {
+		fmt.Fprintf(&buf, "Subject: %s\r\n", msg.Subject)
+	}
 	fmt.Fprintf(&buf, "\r\n%s", msg.Body)
 
 	return buf.String()
