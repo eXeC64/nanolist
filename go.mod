@@ -1,4 +1,4 @@
-module github.com/Rjected/nanolist
+module github.com/eXeC64/nanolist
 
 go 1.12
 
