@@ -43,17 +43,19 @@ type List struct {
 }
 
 type Message struct {
-	Subject     string
-	From        string
-	To          string
-	Cc          string
-	Bcc         string
-	Date        string
-	Id          string
-	InReplyTo   string
-	ContentType string
-	XList       string
-	Body        string
+	Subject            string
+	From               string
+	To                 string
+	Cc                 string
+	Bcc                string
+	Date               string
+	Id                 string
+	InReplyTo          string
+	ContentType        string
+	ContentDisposition string
+	XList              string
+	Body               string
+	MimeVersion        string
 }
 
 var gConfig *Config
@@ -279,6 +281,7 @@ func (msg *Message) FromReader(stream io.Reader) error {
 		return err
 	}
 
+	msg.MimeVersion = inMessage.Header.Get("MIME-Version")
 	msg.Subject = inMessage.Header.Get("Subject")
 	msg.From = inMessage.Header.Get("From")
 	msg.Id = inMessage.Header.Get("Message-ID")
@@ -288,6 +291,8 @@ func (msg *Message) FromReader(stream io.Reader) error {
 	msg.Cc = inMessage.Header.Get("Cc")
 	msg.Bcc = inMessage.Header.Get("Bcc")
 	msg.Date = inMessage.Header.Get("Date")
+	msg.ContentType = inMessage.Header.Get("Content-Type")
+	msg.ContentDisposition = inMessage.Header.Get("Content-Disposition")
 
 	return nil
 }
@@ -313,6 +318,10 @@ func (msg *Message) ResendAs(listId string, listAddress string) *Message {
 	send.Id = msg.Id
 	send.InReplyTo = msg.InReplyTo
 	send.XList = listId + " <" + listAddress + ">"
+	send.Body = msg.Body
+	send.ContentType = msg.ContentType
+	send.ContentDisposition = msg.ContentDisposition
+	send.MimeVersion = msg.MimeVersion
 
 	// If the destination mailing list is in the Bcc field, keep it there
 	bccList, err := mail.ParseAddressList(msg.Bcc)
@@ -350,6 +359,13 @@ func (msg *Message) String() string {
 	if len(msg.ContentType) > 0 {
 		fmt.Fprintf(&buf, "Content-Type: %s\r\n", msg.ContentType)
 	}
+	if len(msg.ContentDisposition) > 0 {
+		fmt.Fprintf(&buf, "Content-Disposition: %s\r\n", msg.ContentDisposition)
+	}
+	if len(msg.MimeVersion) > 0 {
+		fmt.Fprintf(&buf, "MIME-Version: %s\r\n", msg.MimeVersion)
+	}
+
 	fmt.Fprintf(&buf, "Subject: %s\r\n", msg.Subject)
 	fmt.Fprintf(&buf, "\r\n%s", msg.Body)
 
@@ -357,6 +373,13 @@ func (msg *Message) String() string {
 }
 
 func (msg *Message) Send(recipients []string) {
+
+	e, err_parse := mail.ParseAddress(msg.From)
+	if err_parse != nil {
+		log.Printf("ERROR_PARSING Error=%s\n", err_parse)
+		os.Exit(0)
+	}
+
 	if gConfig.Debug {
 		fmt.Printf("------------------------------------------------------------\n")
 		fmt.Printf("SENDING MESSAGE TO:\n")
@@ -369,9 +392,9 @@ func (msg *Message) Send(recipients []string) {
 	}
 
 	auth := smtp.PlainAuth("", gConfig.SMTPUsername, gConfig.SMTPPassword, gConfig.SMTPHostname)
-	err := smtp.SendMail(gConfig.SMTPHostname+":"+gConfig.SMTPPort, auth, msg.From, recipients, []byte(msg.String()))
+	err := smtp.SendMail(gConfig.SMTPHostname+":"+gConfig.SMTPPort, auth, e.Address, recipients, []byte(msg.String()))
 	if err != nil {
-		log.Printf("EROR_SENDING Error=%q\n", err.Error())
+		log.Printf("ERROR_SENDING Error=%q\n", err.Error())
 		os.Exit(0)
 	}
 }
